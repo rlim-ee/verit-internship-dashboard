@@ -96,159 +96,311 @@ ui <- bs4DashPage(
       
       # CSS personnalisé
       tags$style(HTML("
-    /* Global Font */
-    body, h1, h2, h3, h4, h5, h6, .small-box, .nav-link, .brand-text {
-      font-family: 'Poppins', sans-serif !important;
-    }
+  /* Police globale */
+  body, h1, h2, h3, h4, h5, h6, .small-box, .nav-link, .brand-text {
+    font-family: 'Poppins', sans-serif !important;
+  }
 
-    /* Header Navbar Brand */
-    .main-header .navbar .navbar-brand .brand-text {
-      font-weight: bold !important;
-      font-size: 22px !important;
-      color: #0B162C !important;
-    }
+  /* En-tête - Marque de la barre de navigation */
+  .main-header .navbar .navbar-brand .brand-text {
+    font-weight: bold !important;
+    font-size: 22px !important;
+    color: #0B162C !important;
+  }
 
-    /* Sidebar */
-    .main-sidebar {
-      background-color: #5FC2BA !important;
-    }
+  /* Barre latérale */
+  .main-sidebar {
+    background-color: #5FC2BA !important;
+  }
 
-    .main-sidebar .nav-link,
-    .main-sidebar .brand-link {
-      color: #0B162C !important;
-    }
+  .main-sidebar .nav-link,
+  .main-sidebar .brand-link {
+    color: #0B162C !important;
+  }
 
-    .main-sidebar .nav-link.active {
-      color: #5FC2BA !important;
-      background-color: #0B162C !important;
-    }
+  .main-sidebar .nav-link.active {
+    color: #5FC2BA !important;
+    background-color: #0B162C !important;
+  }
 
-    .main-sidebar .nav-link:hover {
-      background-color: #0B162C !important;
-      color: #5FC2BA !important;
-    }
+  .main-sidebar .nav-link:hover {
+    background-color: #0B162C !important;
+    color: #5FC2BA !important;
+  }
 
-    /* Content Backgrounds */
-    .content-wrapper,
-    .main-footer,
-    .main-header {
-      background-color: white !important;
-    }
+  /* Fond des contenus */
+  .content-wrapper,
+  .main-footer,
+  .main-header {
+    background-color: white !important;
+  }
 
-    /* Card Titles */
-    .card-header {
-      background-color: #0B162C !important;
-      color: #5FC2BA !important;
-    }
+  /* En-têtes des cartes */
+  .card-header {
+    background-color: #0B162C !important;
+    color: #5FC2BA !important;
+  }
 
-    .card-title {
-      font-size: 20px !important;
-      font-weight: bold !important;
-      color: white !important;
-    }
+  .card-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: white !important;
+  }
 
-    /* Section Headers */
-    .section-header {
-      color: #0B162C !important;
-      font-weight: bold !important;
+  /* Titres de section */
+  .section-header {
+  background-color: #5FC2BA !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+  padding: 12px 20px !important;
+  margin: 30px 0 20px 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  border-left: 5px solid #0B162C !important;
+  letter-spacing: 0.5px !important;
+}
+
+
+  /* Value boxes personnalisées */
+  .value-box-custom-teal {
+    background: linear-gradient(135deg, #5FC2BA, #4FADAA) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(95, 194, 186, 0.3) !important;
+  }
+
+  .value-box-custom-navy {
+    background: linear-gradient(135deg, #0B162C, #1A2B4C) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(11, 22, 44, 0.3) !important;
+  }
+
+  .value-box-custom-orange {
+    background: linear-gradient(135deg, #FF6B35, #F7931E) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+  }
+
+  .value-box-custom-purple {
+    background: linear-gradient(135deg, #6C5CE7, #A29BFE) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3) !important;
+  }
+
+  .value-box-custom-green {
+    background: linear-gradient(135deg, #00B894, #00CEC9) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3) !important;
+  }
+
+  /* Texte des value boxes */
+  .small-box h3, .small-box h4 {
+    font-weight: bold !important;
+    font-size: 1.8rem !important;
+    color: white !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+  }
+
+  .small-box p {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    color: white !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+  }
+
+  .small-box .icon {
+    font-size: 4rem !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Lien dans les value boxes */
+  .small-box a {
+    color: white !important;
+    text-decoration: none !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .small-box a:hover {
+    color: #f8f9fa !important;
+    text-decoration: underline !important;
+    transform: scale(1.05) !important;
+  }
+
+  /* Animation au survol des small-box */
+  .small-box {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  }
+
+  .small-box:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Responsive pour les petits écrans */
+  @media (max-width: 768px) {
+    .small-box h3 {
       font-size: 1.4rem !important;
-      border-left: 6px solid #0B162C !important;
-      background: linear-gradient(90deg, #5FC2BA 0%, rgba(95, 194, 186, 0.2) 100%) !important;
-      padding: 10px 15px !important;
-      margin: 30px 0 15px 0 !important;
-      border-radius: 6px !important;
     }
-
-    /* Custom Value Boxes */
-    .value-box-custom-teal {
-      background: linear-gradient(135deg, #5FC2BA, #4FADAA) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(95, 194, 186, 0.3) !important;
-    }
-
-    .value-box-custom-navy {
-      background: linear-gradient(135deg, #0B162C, #1A2B4C) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(11, 22, 44, 0.3) !important;
-    }
-
-    .value-box-custom-orange {
-      background: linear-gradient(135deg, #FF6B35, #F7931E) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
-    }
-
-    .value-box-custom-purple {
-      background: linear-gradient(135deg, #6C5CE7, #A29BFE) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3) !important;
-    }
-
-    .value-box-custom-green {
-      background: linear-gradient(135deg, #00B894, #00CEC9) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3) !important;
-    }
-
-    /* Value Box Text */
-    .small-box h3, .small-box h4 {
-      font-weight: bold !important;
-      font-size: 1.8rem !important;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-    }
-
     .small-box p {
-      font-weight: 600 !important;
-      font-size: 1.1rem !important;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+      font-size: 1rem !important;
     }
+  }
 
-    .small-box .icon {
-      font-size: 4rem !important;
-      opacity: 0.8 !important;
-    }
+  /* Carte moderne d'énergie */
+  .modern-energy-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 5px solid;
+    padding: 20px;
+    margin-bottom: 20px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-    /* Value Box Link */
-    .small-box a {
-      color: white !important;
-      text-decoration: none !important;
-      font-weight: bold !important;
-      transition: all 0.3s ease !important;
-    }
+  .modern-energy-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
 
-    .small-box a:hover {
-      color: #f8f9fa !important;
-      text-decoration: underline !important;
-      transform: scale(1.05) !important;
-    }
+  .energy-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
 
-    /* Hover animation for small-box */
-    .small-box {
-      transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    }
+  .energy-icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+  }
 
-    .small-box:hover {
-      transform: translateY(-5px) !important;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
-    }
+  .energy-value-large {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
 
-    /* Responsive for small screens */
-    @media (max-width: 768px) {
-      .small-box h3 {
-        font-size: 1.4rem !important;
-      }
-      .small-box p {
-        font-size: 1rem !important;
-      }
+  .energy-subtitle-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .energy-capacity-info {
+    font-size: 0.75rem;       /* un peu plus petit */
+    color: #64748b;           /* un gris discret */
+    margin-top: 4px;
+    text-align: right;        /* aligné à droite comme la valeur principale */
+    white-space: nowrap;      /* évite les retours à la ligne */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+  .progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+
+  .progress-bar-animated {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.2s ease-out;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+  }
+
+  .section-title {
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3b82f6;
+    display: inline-block;
+  }
+
+  /* Informations supplémentaires */
+  .energy-extra-info {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-grow: 1;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+  }
+
+  .info-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-label {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .info-value {
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* Animation d’apparition */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
     }
-  "))
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Correctifs de mise en page */
+  .row {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+
+  .row:after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+"))
     ),
     
     bs4TabItems(
@@ -274,279 +426,133 @@ ui <- bs4DashPage(
         ),
         
         
-        h4("Explorer le dashboard :", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
+        h3("Explorer le dashboard :"),
         
-        # Navigation Value Boxes - DC & Europe Section
-        h5("DC & Europe", class = "section-header"),
+        # Section: Répartition des data centers
+        h5("Répartition des data centers", class = "section-header"),
+        
         fluidRow(
-          bs4ValueBox(
-            value = actionLink("go_dc_europe", "Cliquez pour voir"),
-            subtitle = "DC en Europe",
-            icon = icon("earth-europe"),
-            color = "teal",
-            width = 4
+          column(4,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #3b82f6;",  # bleu
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #3b82f6, #1e3a8a);",
+                             icon("globe-europe")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_dc_europe", "Europe", 
+                                           style = "color: #3b82f6; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Data centers en Europe", class = "energy-subtitle-text")
+                     )
+                 )
           ),
           
-          bs4ValueBox(
-            value = actionLink("go_flapd", "Cliquez pour voir"),
-            subtitle = "FLAP-D",
-            icon = icon("network-wired"),
-            color = "gray",
-            width = 4
+          column(4,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #f97316;",  # orange
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #f97316, #c2410c);",
+                             icon("network-wired")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_flapd", "FLAP-D", 
+                                           style = "color: #f97316; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Data centers dans les FLAP-D", class = "energy-subtitle-text")
+                     )
+                 )
           ),
           
-          bs4ValueBox(
-            value = actionLink("go_dc_france", "Cliquez pour voir"),
-            subtitle = "DC en France",
-            icon = icon("flag"),
-            color = "orange",
-            width = 4
+          column(4,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #10b981;",  # vert
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #10b981, #065f46);",
+                             icon("server")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_dc_france", "France", 
+                                           style = "color: #10b981; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Data centers en France", class = "energy-subtitle-text")
+                     )
+                 )
           )
         ),
         
-        # Navigation Value Boxes - Energy Balance Section
+        # Section: Bilan énergétique
         h5("Bilan énergétique", class = "section-header"),
+        
         fluidRow(
-          bs4ValueBox(
-            value = actionLink("go_regions", "Cliquez pour voir"),
-            subtitle = "Analyse nationale",
-            icon = icon("lightbulb"),
-            color = "success",
-            width = 6
+          column(6,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #6366f1;",  # violet
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #6366f1, #4f46e5);",
+                             icon("bolt")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_regions", "France", 
+                                           style = "color: #6366f1; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Énergie en France", class = "energy-subtitle-text")
+                     )
+                 )
           ),
           
-          bs4ValueBox(
-            value = actionLink("go_ara", "Cliquez pour voir"),
-            subtitle = "Analyse régionale",
-            icon = icon("mountain"),
-            color = "purple",
-            width = 6
+          column(6,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #ec4899;",  # rose
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #ec4899, #be185d);",
+                             icon("chart-area")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_ara", "Auvergne-Rhône-Alpes", 
+                                           style = "color: #ec4899; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Analyse régionale", class = "energy-subtitle-text")
+                     )
+                 )
           )
         ),
+          
         
         # Credits
         tags$div(
           style = "margin-top: 30px; text-align: right; font-size: 0.9em; color: #888;",
           "Auteur : Zoé Cargnelli & Robert Lim | Source : ICIS, Eurostat, DataCenterMap, RTE France | 2025"
         )
-      ),
-      
-      ### Tab 1.1: European Data Centers ----
-      tabItem(
-        tabName = "dc_europe_map",
-        
-        fluidRow(
-          column(
-            width = 12,
-            actionButton("retour_accueil_dc_europe", "Retour à l'accueil", icon = icon("arrow-left")),
-            br(), br()
-          )
-        ),
-        
-        # Maps Row
-        fluidRow(
-          bs4Card(
-            title = "Répartition des DC en Europe",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            tmapOutput("map1", height = "450px")
-          ),
-          bs4Card(
-            title = "Part du nombre des DC en Europe",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            plotlyOutput("barPlot", height = "450px")
-          )
-        ),
-        
-        # Key Metrics Row
-        fluidRow(
-          bs4ValueBox(
-            value = "236 TWh",
-            subtitle = "Demande estimée en 2035",
-            icon = icon("bolt"),
-            color = "warning",
-            width = 4
-          ),
-          bs4ValueBox(
-            value = "+146%",
-            subtitle = "Hausse depuis 2024",
-            icon = icon("chart-line"),
-            color = "danger",
-            width = 4
-          ),
-          bs4ValueBox(
-            value = "79%",
-            subtitle = "Concentration sur 10 pays",
-            icon = icon("globe-europe"),
-            color = "info",
-            width = 4
-          )
-        ),
-        
-        # Energy Demand Evolution
-        fluidRow(
-          bs4Card(
-            title = "Évolution de la demande énergétique",
-            width = 12,
-            status = "info",
-            solidHeader = TRUE,
-            collapsible = TRUE,
-            icon = icon("bolt"),
-            plotOutput("dc_demand_plot", height = "390px"),
-            
-            tags$p(
-              "Selon ICIS, la demande énergétique des data centres en Europe passera de 96 TWh en 2024 à 236 TWh en 2035, représentant alors 5,7 % de la demande totale d'électricité.",
-              style = "margin-top: 15px; font-size: 15px;"
-            ),
-            
-            footer = "Source : ICIS, Projection 2024-2035"
-          )
-        )
-      ),
-      
-      ### Tab 1.2: FLAP-D ----
-      tabItem(
-        tabName = "flapd",
-        
-        fluidRow(
-          column(
-            width = 12,
-            actionButton("retour_accueil_flapd", "Retour à l'accueil", icon = icon("arrow-left")),
-            br(), br()
-          )
-        ),
-        
-        
-        h2("FLAP-D"),
-        p("Contenu à venir.")
-      ),
-      
-      ### Tab 1.3: Data Centers in France ----
-      tabItem(
-        tabName = "dc_france",
-        
-        fluidRow(
-          column(
-            width = 12,
-            actionButton("retour_accueil_dc_france", "Retour à l'accueil", icon = icon("arrow-left")),
-            br(), br()
-          )
-        ),
-        
-        
-        h2("DC en France"),
-        p("Contenu à venir.")
-      ),
-      
-      ### Tab 2.1: France Energy Analysis ----
-      tabItem(
-        tabName = "regions",
-        
-        fluidRow(
-          column(
-            width = 12,
-            actionButton("retour_accueil_regions", "Retour à l'accueil", icon = icon("arrow-left")),
-            br(), br()
-          )
-        ),
-        
-        fluidRow(
-          
-          # 1ère carte avec menu déroulant
-          bs4Card(
-            title = "Carte interactive : Consommation ou Production totale",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            collapsible = TRUE,
-            
-            selectInput(
-              inputId = "choix_map",
-              label = "Choisir l’indicateur à afficher :",
-              choices = c("Consommation totale brute" = "conso", 
-                          "Production totale" = "prod"),
-              selected = "prod"
-            ),
-            
-            tmapOutput("map_totale", height = 530)
-          ),
-          
-          # 2ème carte : camembert de production par filière
-          bs4Card(
-            title = "Production d'énergie par filière",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            
-            selectInput("region_select", "Choisir une région :", 
-                        choices = c("France", regions$NOM), selected = "France"),
-            
-            plotlyOutput("pie_chart", height = 530)
-          )
-        ),
-        
-        # Time Series Row
-        fluidRow(
-          bs4Card(
-            title = "Évolution de la production par filière",
-            width = 12,
-            status = "teal",
-            solidHeader = TRUE,
-            plotlyOutput("area_chart", height = 300)
-          )
-        ),
-        
-        # Analysis Row
-        fluidRow(
-          bs4Card(
-            title = "Qui alimente la France ?",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            tmapOutput("map6", height = 450)
-          ),
-          bs4Card(
-            title = "Production vs Consommation par région",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            plotlyOutput("radar_chart", height = 450)
-          )
-        )
-      ),
-      
-      ### Tab 2.2: Auvergne-Rhône-Alpes ----
-      tabItem(
-        tabName = "ara",
-        
-        fluidRow(
-          column(
-            width = 12,
-            actionButton("retour_accueil_ara", "Retour à l'accueil", icon = icon("arrow-left")),
-            br(), br()
-          )
-        ),
-        
-        fluidRow(
-          bs4Card(
-            title = "Consommation totale",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            tmapOutput("map4", height = 530)
-          ),
-          bs4Card(
-            title = "Consommation par habitant",
-            width = 6,
-            status = "teal",
-            solidHeader = TRUE,
-            tmapOutput("map5", height = 530)
-          )
-        )
       )
     )
   )
 )
+      
+    
+  
