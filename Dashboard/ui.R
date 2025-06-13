@@ -1,5 +1,5 @@
 # INIT----
-required_packages <- c("rsconnect","shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
+required_packages <- c("rsconnect","shiny", "sf", "readr","ggtext", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
 missing <- required_packages[!required_packages %in% installed.packages()]
 if(length(missing)) install.packages(missing)
 lapply(required_packages, library, character.only = TRUE)
@@ -26,8 +26,9 @@ lapply(required_packages, library, character.only = TRUE)
   library(shinyBS)
   library(rsconnect)
   library(shinyWidgets)
+  library(scales)
+  library(ggtext)
 }
-
 
 # Charger les donnnées
 dc_europe <- read_csv(here(
@@ -49,12 +50,6 @@ data_ara <- st_read(here(
 
 
 
-# Mode interactif pour tmap
-tmap_mode("view")
-
-
-
-
 # USER INTERFACE ----
 ui <- bs4DashPage(
   title = "Dashboard",
@@ -64,7 +59,7 @@ ui <- bs4DashPage(
   
   ## Sidebar ----
   sidebar = bs4DashSidebar(
-    skin = "#5FC2BA",
+    skin = "#31708f",
     bs4SidebarMenu(
       id = "tabs",
       bs4SidebarMenuItem("Accueil", tabName = "home", icon = icon("home")),
@@ -77,7 +72,7 @@ ui <- bs4DashPage(
       
       bs4SidebarMenuItem("Bilan énergétique", icon = icon("lightbulb"),
                          bs4SidebarMenuSubItem("France", tabName = "regions"),
-                         bs4SidebarMenuSubItem("Auvergne-Rhône-Alpes", tabName = "ara")
+                         bs4SidebarMenuSubItem("AURA", tabName = "ara")
       )
     )
   ),
@@ -105,17 +100,17 @@ ui <- bs4DashPage(
   .main-header .navbar .navbar-brand .brand-text {
     font-weight: bold !important;
     font-size: 22px !important;
-    color: #0B162C !important;
+    color: #f5f6f7 !important;
   }
 
   /* Barre latérale */
   .main-sidebar {
-    background-color: #5FC2BA !important;
+    background-color: #31708f !important;
   }
 
   .main-sidebar .nav-link,
   .main-sidebar .brand-link {
-    color: #0B162C !important;
+    color: #f5f6f7 !important;
   }
 
   .main-sidebar .nav-link.active {
@@ -149,7 +144,7 @@ ui <- bs4DashPage(
 
   /* Titres de section */
   .section-header {
-  background-color: #5FC2BA !important;
+  background-color: #31708f !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   font-size: 1.4rem !important;
@@ -549,7 +544,288 @@ ui <- bs4DashPage(
           style = "margin-top: 30px; text-align: right; font-size: 0.9em; color: #888;",
           "Auteur : Zoé Cargnelli & Robert Lim | Source : ICIS, Eurostat, DataCenterMap, RTE France | 2025"
         )
+      ),
+    
+    ### 1.1 Data centres en Europe----
+    
+    tabItem(
+      tabName = "dc_europe_map",
+      
+      # Bouton retour avec style
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "margin-bottom: 20px;",
+            actionButton("retour_accueil_dc_europe", "Retour à l'accueil", 
+                         icon = icon("arrow-left"),
+                         style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+          )
+        )
+      ),
+      
+      
+      #### 1.1.1 Carte de répartition des DC en Europe + graphique----
+      
+      fluidRow(
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+            
+            h3(icon("map-marked-alt"), "Répartition des DC en Europe", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            leafletOutput("map1", height = "450px"),
+            
+            tags$p(
+              "Visualisation géographique de la distribution des data centres à travers l'Europe, montrant les zones de concentration principale.",
+              style = "margin-top: 15px; font-size: 16px; color: #555;"
+            )
+          )
+        ),
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+            
+            h3(icon("chart-bar"), "Part du nombre des DC en Europe", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            plotlyOutput("barPlot", height = "450px"),
+            
+            tags$p(
+              "Répartition proportionnelle du nombre de data centres par pays européen, illustrant la dominance de certains marchés.",
+              style = "margin-top: 15px; font-size: 16px; color: #555;"
+            )
+          )
+        )
+      ),
+      
+      
+      #### 1.1.2 Chiffres clés----
+      
+      fluidRow(
+        style = "margin-bottom: 30px;",
+        column(
+          width = 4,
+          div(
+            style = "background: #f9f9f9; border-radius: 8px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center;",
+            
+            div(
+              style = "margin-bottom: 15px;",
+              icon("bolt", style = "color: #FFA500; font-size: 32px; margin-bottom: 10px;")
+            ),
+            
+            h3(icon("bolt"), "Demande énergétique 2035", style = "color: #31708f; margin-bottom: 15px; font-size: 18px;"),
+            
+            div(style = "font-size: 28px; font-weight: bold; color: #CC8400; margin-bottom: 10px;", "236 TWh"),
+            
+            tags$p(
+              "La consommation énergétique des data centres devrait plus que doubler d'ici 2035, atteignant 5,7% de la demande totale d'électricité européenne.",
+              style = "font-size: 14px; color: #555; line-height: 1.4;"
+            )
+          )
+        ),
+        
+        column(
+          width = 4,
+          div(
+            style = "background: #f9f9f9; border-radius: 8px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center;",
+            
+            div(
+              style = "margin-bottom: 15px;",
+              icon("chart-line", style = "color: #DC143C; font-size: 32px; margin-bottom: 10px;")
+            ),
+            
+            h3(icon("trending-up"), "Croissance 2024-2035", style = "color: #31708f; margin-bottom: 15px; font-size: 18px;"),
+            
+            div(style = "font-size: 28px; font-weight: bold; color: #B01030; margin-bottom: 10px;", "+146%"),
+            
+            tags$p(
+              "Augmentation significative de la demande énergétique entre 2024 et 2035, reflétant l'expansion rapide du secteur numérique.",
+              style = "font-size: 14px; color: #555; line-height: 1.4;"
+            )
+          )
+        ),
+        
+        column(
+          width = 4,
+          div(
+            style = "background: #f9f9f9; border-radius: 8px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center;",
+            
+            div(
+              style = "margin-bottom: 15px;",
+              icon("globe-europe", style = "color: #4682B4; font-size: 32px; margin-bottom: 10px;")
+            ),
+            
+            h3(icon("map"), "Concentration géographique", style = "color: #31708f; margin-bottom: 15px; font-size: 18px;"),
+            
+            div(style = "font-size: 28px; font-weight: bold; color: #336699; margin-bottom: 10px;", "79%"),
+            
+            tags$p(
+              "10 pays concentrent la majorité de la demande énergétique des data centres en Europe, soulignant l'importance des hubs technologiques.",
+              style = "font-size: 14px; color: #555; line-height: 1.4;"
+            )
+          )
+        )
+      ),
+      
+      
+      #### 1.1.3 Graphique de l'évolution de la demande----
+      
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);",
+            
+            h3(icon("bolt"), "Évolution de la demande énergétique", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            plotOutput("dc_demand_plot", height = "390px"),
+            
+            tags$p(
+              "Selon ICIS, la demande énergétique des data centres en Europe passera de 96 TWh en 2024 à 236 TWh en 2035, représentant alors 5,7 % de la demande totale d'électricité.",
+              style = "margin-top: 15px; font-size: 16px; color: #555;"
+            )
+          )
+        )
       )
+    ),
+    
+    
+    
+    ### 1.2 Data centres danns les FLAP-D----
+    
+    
+    
+    
+    ### 1.3 Data centres en France----
+    
+    
+    
+    
+    ### 2.1 Énergie en France----
+    tabItem(
+      tabName = "regions",
+      
+      # Bouton retour avec style
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "margin-bottom: 20px;",
+            actionButton("retour_accueil_regions", "Retour à l'accueil", 
+                         icon = icon("arrow-left"),
+                         style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+          )
+        )
+      ),
+      
+      # Titre principal avec style
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+            h2(icon("leaf"), "Analyse régionale de la production et consommation d'énergie", 
+               style = "color: #31708f; font-weight: bold; margin: 0;")
+          )
+        )
+      ),
+      
+      # Première ligne : carte + camembert avec style uniforme
+      fluidRow(
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; height: 600px; display: flex; flex-direction: column;",
+            
+            h3(icon("map"), "Consommation vs Production", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            selectInput(
+              inputId = "choix_map",
+              label = "Choisir l'indicateur à afficher :",
+              choices = c("Consommation totale brute" = "conso", 
+                          "Production totale" = "prod"),
+              selected = "prod"
+            ),
+            
+            div(
+              style = "flex-grow: 1;",
+              leafletOutput("map_totale", height = "450px")
+            )
+          )
+        ),
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; height: 600px; display: flex; flex-direction: column;",
+            
+            h3(icon("chart-pie"), "Production d'énergie par filière", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            selectInput("region_select", "Choisir une région :", 
+                        choices = c("France", regions$NOM), selected = "France"),
+            
+            div(
+              style = "flex-grow: 1;",
+              plotlyOutput("pie_chart", height = "450px")
+            )
+          )
+        )
+      ),
+      
+      # Deuxième ligne : évolution par filière
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+            
+            h3(icon("chart-area"), "Évolution de la production par filière", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            plotlyOutput("area_chart", height = "320px")
+          )
+        )
+      ),
+      
+      # Troisième ligne : carte flux + radar
+      fluidRow(
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; height: 550px; display: flex; flex-direction: column;",
+            
+            h3(icon("plug"), "Qui alimente la France ?", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            div(
+              style = "flex-grow: 1;",
+              leafletOutput("map6", height = "400px")
+            )
+          )
+        ),
+        column(
+          width = 6,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; height: 550px; display: flex; flex-direction: column;",
+            
+            h3(icon("balance-scale"), "Graphique", style = "color: #31708f; margin-bottom: 15px;"),
+            
+            div(
+              style = "flex-grow: 1;",
+              plotlyOutput("radar_chart", height = "400px")
+            )
+          )
+        )
+      )
+    )
+    
+    
+    
+    
+    
+    
+    ### 2.2 Énergie en Auvergne-Rhone-Alpes
+    
+  
     )
   )
 )
