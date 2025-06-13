@@ -550,7 +550,21 @@ ui <- bs4DashPage(
           "Auteur : Zoé Cargnelli & Robert Lim | Source : ICIS, Eurostat, DataCenterMap, RTE France | 2025"
         )
       )
-    )
+    ),
+    ### Tab 1.2: FLAP-D ----
+    tabItem(
+      tabName = "flapd",
+      
+      fluidRow(
+        column(
+          width = 12,
+          actionButton("retour_accueil_flapd", "Retour à l'accueil", icon = icon("arrow-left")),
+          br(), br()
+        )
+      ),
+      h2("FLAP-D"),
+      p("Contenu à venir.")
+    ),
   )
 )
       

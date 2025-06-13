@@ -66,7 +66,7 @@ server <- function(input, output, session) {
     updateTabItems(session, inputId = "tabs", selected = "home")
   })
   
-  
+  ## 1.2 FLAP_D----
 }
   
 
