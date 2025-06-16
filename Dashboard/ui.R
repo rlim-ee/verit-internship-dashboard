@@ -45,9 +45,21 @@ data_prod <- read_csv2(here(
 data_ara <- st_read(here(
   "dashboard",
   "data", "data_ara_epci", "DONNEES", "data_ara.shp"))
+data_DC_FLAPD <- st_read(here(
+  "dashboard",
+  "data", "data_DC_FLAPD", "DC_FLAP_D.shp"))
 
+data_DC_FLAPD$ville_groupee <- case_when(
+  data_DC_FLAPD$city %in% c("Paris", "Saint-Denis", "Courbevoie", "Ivry-sur-Seine", "Pantin", "Aubervilliers", "Montreuil", "Clichy", "Vitry-sur-Seine", "Roissy-en-France", "Nanterre", "Les Ulis", "Nozay", "Villepinte") ~ "Paris",
+  data_DC_FLAPD$city %in% c("London", "Slough", "Hounslow", "Hayes", "Feltham", "Wembley", "Watford", "Southall", "Enfield", "Crawley") ~ "London",
+  data_DC_FLAPD$city %in% c("Amsterdam", "Schiphol", "Hoofddorp", "Schiphol-Rijk", "Aalsmeer", "Oude Meer", "Diemen") ~ "Amsterdam",
+  data_DC_FLAPD$city %in% c("Frankfurt am Main", "Frankfurt", "Eschborn", "Offenbach", "Neu-Isenburg", "Dietzenbach", "Raunheim", "Hanau", "Langen") ~ "Frankfurt",
+  data_DC_FLAPD$city %in% c("Dublin", "Clonshaugh", "Blanchardstown", "Ballycoolin", "Clonee", "Clondalkin", "Mulhuddart", "Tallaght", "Ballybane") ~ "Dublin",
+  TRUE ~ NA_character_
+)
 
-
+data_DC_FLAPD <- data_DC_FLAPD %>%
+  filter(!is.na(latitude), !is.na(longitude))
 
 # Mode interactif pour tmap
 tmap_mode("view")
@@ -549,8 +561,7 @@ ui <- bs4DashPage(
           style = "margin-top: 30px; text-align: right; font-size: 0.9em; color: #888;",
           "Auteur : Zoé Cargnelli & Robert Lim | Source : ICIS, Eurostat, DataCenterMap, RTE France | 2025"
         )
-      )
-    ),
+      ),
     ### Tab 1.2: FLAP-D ----
     tabItem(
       tabName = "flapd",
@@ -562,11 +573,32 @@ ui <- bs4DashPage(
           br(), br()
         )
       ),
+      
       h2("FLAP-D"),
-      p("Contenu à venir.")
-    ),
+      
+      fluidRow(
+        bs4Card(
+          title = "Carte interactive des Data Centers (FLAP-D)",
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          collapsible = TRUE,
+          pickerInput(
+            inputId = "selected_villes",
+            label = "Filtrer les villes principales :",
+            choices = c("Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
+            selected = c("Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
+            multiple = TRUE,
+            options = list(
+              `actions-box` = TRUE,
+              `live-search` = TRUE,
+              `selected-text-format` = "count > 1"
+            )
+          ),
+          leafletOutput("map", height = 600)
+        )
+      )
+      )
+    )
   )
 )
-      
-    
-  
