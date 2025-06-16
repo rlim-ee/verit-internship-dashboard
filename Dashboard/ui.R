@@ -732,7 +732,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Première ligne : carte + camembert avec style uniforme
+      # Première ligne : carte + camembert
       fluidRow(
         column(
           width = 6,
