@@ -1,5 +1,5 @@
 # INIT----
-required_packages <- c("rsconnect","shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
+required_packages <- c("rsconnect","shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets","htmlwidgets")
 missing <- required_packages[!required_packages %in% installed.packages()]
 if(length(missing)) install.packages(missing)
 lapply(required_packages, library, character.only = TRUE)
@@ -26,6 +26,7 @@ lapply(required_packages, library, character.only = TRUE)
   library(shinyBS)
   library(rsconnect)
   library(shinyWidgets)
+  library(htmlwidgets)
 }
 
 
@@ -87,128 +88,105 @@ server <- function(input, output, session) {
   
   # Réactif : filtrage selon la sélection
   data_filtrée <- reactive({
-    req(input$selected_villes)
-    df <- data_DC_FLAPD %>% filter(ville_groupee %in% input$selected_villes)
-    cat("Villes sélectionnées :", paste(input$selected_villes, collapse = ", "), "\n")
-    cat("Nombre de points affichés :", nrow(df), "\n")
-    return(df)
+    if (input$selected_ville == "All") {
+      data_DC_FLAPD
+    } else {
+      data_DC_FLAPD %>% filter(ville_groupee == input$selected_ville)
+    }
   })
   
   # Affichage de la carte avec points + légende + zoom
   output$map <- renderLeaflet({
     df <- data_filtrée()
+    is_detailed <- input$selected_ville != "All"
     
-    # Cas 1 : une seule ville sélectionnée → affichage enrichi
-    if (length(input$selected_villes) == 1) {
-      
-      # --- Surface : NA gardés comme NA ---
-      area_vals <- df$area_m2
-      vals_valides <- area_vals[!is.na(area_vals)]
-      
-      pal <- colorNumeric(
-        palette = "YlOrRd",
-        domain = df$capacity_e,
-        na.color = "lightgray"
-      )
-      
-      rayons <- ifelse(
-        is.na(area_vals),
-        8,
-        scales::rescale(area_vals, to = c(8, 20))
-      )
-      
-      # --- Légende surface adaptative ---
-      seuils_legende <- quantile(vals_valides, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-      seuils_legende <- round(seuils_legende)
-      rayons_legende <- scales::rescale(seuils_legende, to = c(8, 20))
-      
-      html_legende <- paste0(
-        "<div style='background: white; padding: 8px; border-radius: 5px; font-size: 13px'>
-        <b>Surface (m²)</b><br>",
-        paste0(
-          "<div style='height: ", 2 * rayons_legende, "px; margin-bottom: 4px;'>
-           <svg width='", 2 * max(rayons_legende), "' height='", 2 * rayons_legende, "'>
-             <circle cx='", rayons_legende, "' cy='", rayons_legende, "' r='", rayons_legende, "' 
-                     fill='lightgray' stroke='black' stroke-width='1'/>
-           </svg> ",
-          format(seuils_legende, big.mark = " "), " m²
-         </div>"
-          , collapse = ""),
-        "<div style='margin-top:6px'>
-         <svg width='20' height='20'>
-           <circle cx='10' cy='10' r='5' fill='lightgray' stroke='black' stroke-width='1'/>
-         </svg> Donnée manquante
-       </div>
-       </div>"
-      )
-      
-      leaflet(df) %>%
-        addProviderTiles("CartoDB.Positron") %>%
+    pal <- colorNumeric("YlOrRd", domain = df$capacity_e, na.color = "lightgray")
+    area_vals <- df$area_m2
+    rayons <- ifelse(is.na(area_vals), 8, scales::rescale(area_vals, to = c(8, 20)))
+    
+    map <- leaflet(df) %>%
+      addProviderTiles("CartoDB.Positron")
+    
+    if (is_detailed) {
+      map <- map %>%
         addCircleMarkers(
-          lng = ~longitude,
-          lat = ~latitude,
-          radius = rayons,
-          fillColor = ~pal(capacity_e),
-          color = "black",
-          weight = 2,
-          stroke = TRUE,
-          fillOpacity = 0.9,
-          popup = ~paste0(
-            "<b>Nom :</b> ", name, "<br>",
-            "<b>Ville :</b> ", city, "<br>",
-            "<b>Groupe :</b> ", ville_groupee, "<br>",
-            "<b>Adresse :</b> ", adress, "<br>",
-            "<b>Surface :</b> ", area_m2, " m²<br>",
-            "<b>Capacité :</b> ", capacity_e, " MW<br>",
-            "<b>Entreprise :</b> ", company
-          )
-        ) %>%
-        addLegend(
-          position = "bottomright",
-          pal = pal,
-          values = df$capacity_e,
-          title = "Capacité (MW)",
-          opacity = 0.8,
-          na.label = "Non renseignée",
-          labFormat = labelFormat()
-        ) %>%
-        addControl(
-          html = html_legende,
-          position = "bottomleft"
-        ) %>%
-        fitBounds(
-          lng1 = min(df$longitude, na.rm = TRUE),
-          lat1 = min(df$latitude, na.rm = TRUE),
-          lng2 = max(df$longitude, na.rm = TRUE),
-          lat2 = max(df$latitude, na.rm = TRUE)
+          lng = ~longitude, lat = ~latitude, radius = rayons,
+          fillColor = ~pal(capacity_e), color = "black", weight = 2,
+          stroke = TRUE, fillOpacity = 0.9,
+          popup = ~paste0("<b>Nom :</b> ", name, "<br><b>Ville :</b> ", city,
+                          "<br><b>Groupe :</b> ", ville_groupee,
+                          "<br><b>Adresse :</b> ", adress,
+                          "<br><b>Surface :</b> ", area_m2, " m²",
+                          "<br><b>Capacité :</b> ", capacity_e, " MW",
+                          "<br><b>Entreprise :</b> ", company)) %>%
+        addLegend(position = "bottomright", pal = pal, values = df$capacity_e,
+                  title = "Capacité (MW)", opacity = 0.8, na.label = "Non renseignée")
+      
+      # Légende cercles concentriques
+      vals_valides <- df$area_m2[!is.na(df$area_m2)]
+      if (length(vals_valides) > 0) {
+        seuils <- quantile(vals_valides, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+        rayons_legende <- scales::rescale(seuils, to = c(8, 20))
+        
+        html_legende <- paste0(
+          "<div style='background: white; padding: 8px; border-radius: 5px; font-size: 13px'><b>Surface (m²)</b><br>",
+          paste0(
+            "<div style='height: ", 2 * rayons_legende, "px; margin-bottom: 4px;'>",
+            "<svg width='", 2 * max(rayons_legende), "' height='", 2 * rayons_legende, "'>",
+            "<circle cx='", rayons_legende, "' cy='", rayons_legende, "' r='", rayons_legende, "' fill='lightgray' stroke='black' stroke-width='1'/></svg> ",
+            format(round(seuils), big.mark = " "), " m²</div>", collapse = ""),
+          "<div style='margin-top:6px'><svg width='20' height='20'><circle cx='10' cy='10' r='5' fill='lightgray' stroke='black' stroke-width='1'/></svg> Donnée manquante</div></div>"
         )
+        
+        map <- map %>% addControl(html = html_legende, position = "bottomleft")
+      }
       
     } else {
-      # Cas 2 : plusieurs villes → clustering simplifié
-      leaflet(df) %>%
-        addProviderTiles("CartoDB.Positron") %>%
+      map <- map %>%
         addMarkers(
-          lng = ~longitude,
-          lat = ~latitude,
+          lng = ~longitude, lat = ~latitude,
           clusterOptions = markerClusterOptions(),
-          popup = ~paste0(
-            "<b>Nom :</b> ", name, "<br>",
-            "<b>Ville :</b> ", city, "<br>",
-            "<b>Groupe :</b> ", ville_groupee, "<br>",
-            "<b>Adresse :</b> ", adress, "<br>",
-            "<b>Surface :</b> ", area_m2, " m²<br>",
-            "<b>Capacité :</b> ", capacity_e, " MW<br>",
-            "<b>Entreprise :</b> ", company
-          )
-        ) %>%
-        fitBounds(
-          lng1 = min(df$longitude, na.rm = TRUE),
-          lat1 = min(df$latitude, na.rm = TRUE),
-          lng2 = max(df$longitude, na.rm = TRUE),
-          lat2 = max(df$latitude, na.rm = TRUE)
+          popup = ~paste0("<b>Nom :</b> ", name, "<br><b>Ville :</b> ", city,
+                          "<br><b>Groupe :</b> ", ville_groupee,
+                          "<br><b>Adresse :</b> ", adress,
+                          "<br><b>Surface :</b> ", area_m2, " m²",
+                          "<br><b>Capacité :</b> ", capacity_e, " MW",
+                          "<br><b>Entreprise :</b> ", company)
         )
     }
+    
+    map %>% fitBounds(min(df$longitude), min(df$latitude), max(df$longitude), max(df$latitude))
   })
+  
+  # Boutons pour chaque ville
+  observeEvent(input$go_paris, {
+    updateSelectInput(session, "selected_ville", selected = "Paris")
+  })
+  
+  observeEvent(input$go_london, {
+    updateSelectInput(session, "selected_ville", selected = "London")
+  })
+  
+  observeEvent(input$go_amsterdam, {
+    updateSelectInput(session, "selected_ville", selected = "Amsterdam")
+  })
+  
+  observeEvent(input$go_frankfurt, {
+    updateSelectInput(session, "selected_ville", selected = "Frankfurt")
+  })
+  
+  observeEvent(input$go_dublin, {
+    updateSelectInput(session, "selected_ville", selected = "Dublin")
+  })
+  
+  # Bouton "Vue globale"
+  observeEvent(input$reset_vue, {
+    updateSelectInput(session, "selected_ville", selected = "All")
+    leafletProxy("map") %>% setView(lng = 5, lat = 51, zoom = 5)
+    showNotification("Vue globale restaurée", type = "message")
+  })
+  
+  
   outputOptions(output, "map", suspendWhenHidden = FALSE)
   
 }

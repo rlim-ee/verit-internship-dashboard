@@ -581,21 +581,31 @@ ui <- bs4DashPage(
           title = "Carte interactive des Data Centers (FLAP-D)",
           width = 12,
           status = "primary",
-          solidHeader = TRUE,
           collapsible = TRUE,
-          pickerInput(
-            inputId = "selected_villes",
-            label = "Filtrer les villes principales :",
-            choices = c("Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
-            selected = c("Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
-            multiple = TRUE,
-            options = list(
-              `actions-box` = TRUE,
-              `live-search` = TRUE,
-              `selected-text-format` = "count > 1"
-            )
+          
+          # Boutons de sélection de villes
+          fluidRow(
+            column(2, actionButton("go_paris", "Paris", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_london", "London", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_amsterdam", "Amsterdam", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_frankfurt", "Frankfurt", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_dublin", "Dublin", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("reset_vue", "Vue globale", icon = icon("globe"), class = "btn btn-outline-dark btn-block"))
           ),
-          leafletOutput("map", height = 600)
+          
+          br(),
+          
+          # Champ caché (géré côté serveur)
+          selectInput(
+            inputId = "selected_ville",
+            label = NULL,
+            choices = c("All", "Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
+            selected = "All",
+            selectize = FALSE,
+            multiple = FALSE
+          ) %>% shinyjs::hidden(),  # on le cache, contrôle fait via boutons
+          
+          leafletOutput("map", height = 650)
         )
       )
       )
