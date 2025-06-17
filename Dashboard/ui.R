@@ -585,25 +585,15 @@ ui <- bs4DashPage(
           
           # Boutons de sélection de villes
           fluidRow(
-            column(2, actionButton("go_paris", "Paris", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_london", "London", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_amsterdam", "Amsterdam", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_frankfurt", "Frankfurt", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_dublin", "Dublin", icon = icon("city"), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_paris", "\U0001F1EB\U0001F1F7 Paris", icon = icon(""), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_london", "\U0001F1EC\U0001F1E7 London", icon = icon(""), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_amsterdam", "\U0001F1F3\U0001F1F1 Amsterdam", icon = icon(""), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_frankfurt", "\U0001F1E9\U0001F1EA Frankfurt", icon = icon(""), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_dublin", "\U0001F1EE\U0001F1EA Dublin", icon = icon(""), class = "btn btn-outline-primary btn-block")),
             column(2, actionButton("reset_vue", "Vue globale", icon = icon("globe"), class = "btn btn-outline-dark btn-block"))
           ),
           
           br(),
-          
-          # Champ caché (géré côté serveur)
-          selectInput(
-            inputId = "selected_ville",
-            label = NULL,
-            choices = c("All", "Paris", "London", "Amsterdam", "Frankfurt", "Dublin"),
-            selected = "All",
-            selectize = FALSE,
-            multiple = FALSE
-          ) %>% shinyjs::hidden(),  # on le cache, contrôle fait via boutons
           
           leafletOutput("map", height = 650)
         )
