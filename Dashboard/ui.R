@@ -583,17 +583,21 @@ ui <- bs4DashPage(
           status = "primary",
           collapsible = TRUE,
           
-          # Boutons de sélection de villes
+          # Boutons de sélection
           fluidRow(
-            column(2, actionButton("go_paris", "\U0001F1EB\U0001F1F7 Paris", icon = icon(""), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_london", "\U0001F1EC\U0001F1E7 London", icon = icon(""), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_amsterdam", "\U0001F1F3\U0001F1F1 Amsterdam", icon = icon(""), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_frankfurt", "\U0001F1E9\U0001F1EA Frankfurt", icon = icon(""), class = "btn btn-outline-primary btn-block")),
-            column(2, actionButton("go_dublin", "\U0001F1EE\U0001F1EA Dublin", icon = icon(""), class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_paris", "\U0001F1EB\U0001F1F7 Paris", class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_london", "\U0001F1EC\U0001F1E7 London", class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_amsterdam", "\U0001F1F3\U0001F1F1 Amsterdam", class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_frankfurt", "\U0001F1E9\U0001F1EA Frankfurt", class = "btn btn-outline-primary btn-block")),
+            column(2, actionButton("go_dublin", "\U0001F1EE\U0001F1EA Dublin", class = "btn btn-outline-primary btn-block")),
             column(2, actionButton("reset_vue", "Vue globale", icon = icon("globe"), class = "btn btn-outline-dark btn-block"))
           ),
           
           br(),
+          
+          # Aide à l'utilisation
+          p("️ Utilisez les boutons 🖱 pour filtrer par ville ou revenir à la vue global.  Cliquez sur les points pour voir les informations détaillées.",
+            style = "margin-left:10px; font-size: 14px;"),
           
           leafletOutput("map", height = 650)
         )

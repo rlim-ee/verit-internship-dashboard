@@ -190,6 +190,12 @@ server <- function(input, output, session) {
     }
     
     map %>% fitBounds(min(df$longitude_jitter), min(df$latitude_jitter), max(df$longitude_jitter), max(df$latitude_jitter))
+    map <- map %>%
+      addControl(
+        html = "<small style='font-size: 12px;'>Source : Data Center Map — Réalisé par Zoé Cargnelli avec Leaflet, R & Shiny</small>",
+        position = "bottomleft"
+      )
+    
   })
   
   
