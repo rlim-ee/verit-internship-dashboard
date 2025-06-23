@@ -1,33 +1,3 @@
-# INIT----
-required_packages <- c("rsconnect","shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
-missing <- required_packages[!required_packages %in% installed.packages()]
-if(length(missing)) install.packages(missing)
-lapply(required_packages, library, character.only = TRUE)
-
-
-{
-  library(here)
-  library(shiny)
-  library(bslib)
-  library(shinydashboard)
-  library(sf)
-  library(ggplot2)
-  library(dplyr)
-  library(tmap)
-  library(readr)
-  library(fresh)
-  library(scatterpie)
-  library(leaflet)
-  library(leaflet.minicharts)
-  library(plotly)
-  library(tidyr)
-  library(bs4Dash)
-  library(bslib)
-  library(shinyBS)
-  library(rsconnect)
-  library(shinyWidgets)
-}
-
 
 # SERVER ----
 server <- function(input, output, session) {
@@ -35,15 +5,19 @@ server <- function(input, output, session) {
   ## Navigation----
   
   observeEvent(input$go_dc_europe, {
-    updateTabItems(session, inputId = "tabs", selected = "dc_europe_map")
+    updateTabItems(session, "tabs", "dc_europe_map")
   })
-  
   observeEvent(input$go_flapd, {
-    updateTabItems(session, inputId = "tabs", selected = "flapd")
+    updateTabItems(session, "tabs", "flapd")
   })
-  
   observeEvent(input$go_dc_france, {
-    updateTabItems(session, inputId = "tabs", selected = "dc_france")
+    updateTabItems(session, "tabs", "dc_france")
+  })
+  observeEvent(input$go_regions, {
+    updateTabItems(session, "tabs", "regions")
+  })
+  observeEvent(input$go_ara, {
+    updateTabItems(session, "tabs", "ara")
   })
   
   observeEvent(input$retour_accueil_dc_europe, {
@@ -193,7 +167,7 @@ server <- function(input, output, session) {
       )
   })
   
-  # Energy Demand Evolution
+  ### Évolution de la demande entre 2000 et 2050----
   
   output$dc_demand_plot <- renderPlot({
     data <- data.frame(
@@ -247,6 +221,7 @@ server <- function(input, output, session) {
   
   
   ## 2.1 Énergie en France----
+  
   ### Map3 - Carte Prodction d'énergie----
   output$map3 <- renderTmap({
     
@@ -880,7 +855,175 @@ server <- function(input, output, session) {
   
   
   
-  ## 2.2 Énergie en Auvergne-Rhone-Alpes
+  ## 2.2 Énergie en Auvergne-Rhone-Alpes----
+  
+  output$map4 <- renderLeaflet({
+    # Reprojection en WGS 84
+    data_ara_wgs84 <- st_transform(data_ara, 4326)
+    
+    # Données des villes principales
+    villes <- data.frame(
+      nom = c("Lyon", "Grenoble", "Clermont-Ferrand"),
+      lon = c(4.8357, 5.7245, 3.0822),
+      lat = c(45.7640, 45.1885, 45.7772)
+    )
+    
+    # Palette de couleurs pour consommation totale
+    pal <- colorBin("Oranges", domain = data_ara_wgs84$tot, bins = 6, na.color = "#e0e0e0")
+    
+    # Etiquettes pour les polygones
+    labels <- sprintf(
+      "<strong>%s</strong><br/>Conso totale : %s MWh/an<br/>Population : %s",
+      data_ara_wgs84$NOM_EPCI,
+      format(data_ara_wgs84$tot, big.mark = " "),
+      format(data_ara_wgs84$pop, big.mark = " ")
+    ) %>% lapply(htmltools::HTML)
+    
+    # Carte leaflet
+    leaflet(data = data_ara_wgs84) %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      setView(lng = 4.8, lat = 45.5, zoom = 7) %>%
+      addPolygons(
+        fillColor = ~pal(tot),
+        weight = 1,
+        opacity = 1,
+        color = "white",
+        dashArray = "3",
+        fillOpacity = 0.8,
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#666",
+          dashArray = "",
+          fillOpacity = 0.9,
+          bringToFront = TRUE
+        ),
+        label = labels
+      ) %>%
+      addLegend(
+        pal = pal,
+        values = ~tot,
+        opacity = 0.7,
+        title = "MWh/an (total)",
+        position = "bottomleft"
+      ) %>%
+      # Points pour les villes
+      addCircleMarkers(
+        data = villes,
+        lng = ~lon,
+        lat = ~lat,
+        radius = 5,
+        color = "black",
+        fillColor = "black",
+        fillOpacity = 0.9,
+        stroke = TRUE,
+        weight = 1
+      ) %>%
+      # Noms des villes
+      addLabelOnlyMarkers(
+        data = villes,
+        lng = ~lon,
+        lat = ~lat,
+        label = ~nom,
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "top",
+          textOnly = TRUE,
+          style = list(
+            "color" = "gray20",
+            "font-weight" = "bold",
+            "font-size" = "13px"
+          )
+        )
+      )
+  })
+  
+  
+  output$map5 <- renderLeaflet({
+    # Reprojection en WGS 84
+    data_ara_wgs84 <- st_transform(data_ara, 4326)
+    
+    # Calcul de la conso par habitant
+    data_ara_wgs84 <- data_ara_wgs84 %>%
+      mutate(
+        conso_per_pop = round(res / pop, 1)
+      )
+    
+    # Coordonnées des villes principales
+    villes <- data.frame(
+      nom = c("Lyon", "Grenoble", "Clermont-Ferrand"),
+      lon = c(4.8357, 5.7245, 3.0822),
+      lat = c(45.7640, 45.1885, 45.7772)
+    )
+    
+    # Créer une palette de couleurs
+    pal <- colorBin("Purples", domain = data_ara_wgs84$conso_per_pop, bins = 5, na.color = "#e0e0e0")
+    
+    # Etiquettes (popup ou labels)
+    labels <- sprintf(
+      "<strong>%s</strong><br/>Conso/hab : %s MWh/an<br/>Population : %s",
+      data_ara_wgs84$NOM_EPCI,
+      data_ara_wgs84$conso_per_pop,
+      format(data_ara_wgs84$pop, big.mark = " ")
+    ) %>% lapply(htmltools::HTML)
+    
+    # Création de la carte
+    leaflet(data = data_ara_wgs84) %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      setView(lng = 4.8, lat = 45.5, zoom = 7) %>%
+      addPolygons(
+        fillColor = ~pal(conso_per_pop),
+        weight = 1,
+        opacity = 1,
+        color = "white",
+        dashArray = "3",
+        fillOpacity = 0.8,
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#666",
+          dashArray = "",
+          fillOpacity = 0.9,
+          bringToFront = TRUE
+        ),
+        label = labels
+      ) %>%
+      addLegend(
+        pal = pal,
+        values = ~conso_per_pop,
+        opacity = 0.7,
+        title = "MWh/an par habitant",
+        position = "bottomleft"
+      ) %>%
+      # Villes : points
+      addCircleMarkers(
+        data = villes,
+        lng = ~lon,
+        lat = ~lat,
+        radius = 5,
+        color = "black",
+        fillColor = "black",
+        fillOpacity = 0.9,
+        stroke = TRUE,
+        weight = 1
+      ) %>%
+      # Villes : noms
+      addLabelOnlyMarkers(
+        data = villes,
+        lng = ~lon,
+        lat = ~lat,
+        label = ~nom,
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "top",
+          textOnly = TRUE,
+          style = list(
+            "color" = "gray20",
+            "font-weight" = "bold",
+            "font-size" = "13px"
+          )
+        )
+      )
+  })
+  
   
   
   
