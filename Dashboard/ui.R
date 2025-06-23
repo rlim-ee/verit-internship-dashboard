@@ -575,6 +575,7 @@ ui <- bs4DashPage(
       ),
       
       h2("FLAP-D"),
+      p("Contenu encore en construction."),
       
       fluidRow(
         bs4Card(
