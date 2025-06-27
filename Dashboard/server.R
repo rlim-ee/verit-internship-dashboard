@@ -1,35 +1,3 @@
-# INIT----
-required_packages <- c("rsconnect","shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets","htmlwidgets")
-missing <- required_packages[!required_packages %in% installed.packages()]
-if(length(missing)) install.packages(missing)
-lapply(required_packages, library, character.only = TRUE)
-
-
-{
-  library(here)
-  library(shiny)
-  library(bslib)
-  library(shinydashboard)
-  library(sf)
-  library(ggplot2)
-  library(dplyr)
-  library(tmap)
-  library(readr)
-  library(fresh)
-  library(scatterpie)
-  library(leaflet)
-  library(leaflet.minicharts)
-  library(plotly)
-  library(tidyr)
-  library(bs4Dash)
-  library(bslib)
-  library(shinyBS)
-  library(rsconnect)
-  library(shinyWidgets)
-  library(htmlwidgets)
-}
-
-
 
 # SERVER ----
 server <- function(input, output, session) {
