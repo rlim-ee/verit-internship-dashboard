@@ -20,6 +20,11 @@ ui <- bs4DashPage(
       bs4SidebarMenuItem("Bilan énergétique", icon = icon("lightbulb"),
                          bs4SidebarMenuSubItem("France", tabName = "regions"),
                          bs4SidebarMenuSubItem("AURA", tabName = "ara")
+      ),
+      
+      bs4SidebarMenuItem("Simulation", icon = icon("cogs"),
+                         bs4SidebarMenuSubItem("Prédictive", tabName = "sim1"),
+                         bs4SidebarMenuSubItem("Comparative", tabName = "sim2")
       )
     )
   ),
@@ -353,7 +358,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        h3("Explorer le dashboard :"),
+        h3("Explorer le dashboard :", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         
         # Section: Répartition des data centers
         h5("Répartition des data centers", class = "section-header"),
@@ -465,6 +470,53 @@ ui <- bs4DashPage(
                      ),
                      div(
                        p("Analyse régionale", class = "energy-subtitle-text")
+                     )
+                 )
+          )
+        ),
+        
+        h3("Explorer les simulations :", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),        
+
+        
+          fluidRow(
+          column(6,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #14b8a6;",
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #14b8a6, #0f766e);",
+                             icon("chart-line")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_sim1", "Analyse prédictive", 
+                                           style = "color: #14b8a6; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Projection énergétique", class = "energy-subtitle-text")
+                     )
+                 )
+          ),
+          
+          column(6,
+                 div(class = "modern-energy-card", 
+                     style = "border-left-color: #06b6d4;",
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle", 
+                             style = "background: linear-gradient(135deg, #06b6d4, #0891b2);",
+                             icon("cogs")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_sim2", "Analyse comparative", 
+                                           style = "color: #06b6d4; text-decoration: none;"), 
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Comparaison de consommation", class = "energy-subtitle-text")
                      )
                  )
           )
@@ -687,7 +739,7 @@ ui <- bs4DashPage(
     
     
     ### 2.1 Énergie en France----
-    tabItem(
+    bs4TabItem(
       tabName = "regions",
       
       # Bouton retour avec style
@@ -807,7 +859,7 @@ ui <- bs4DashPage(
     
     
     ### 2.2 Énergie en Auvergne-Rhone-Alpes----
-    tabItem(
+    bs4TabItem(
       tabName = "ara",
       
       # Bouton retour avec style
@@ -853,13 +905,521 @@ ui <- bs4DashPage(
           )
         )
       )
-    )
+     )
+    ),
     
     ### Installation énergétique dans la région----
     
-  
+    ### 3.1 Sim1----
+    tabItem(
+      tabName = "sim1",
+      fluidRow(
+        column(
+          width = 12,
+          
+          # Bouton retour à l'accueil
+          fluidRow(
+            column(
+              width = 12,
+              div(
+                style = "margin-bottom: 20px;",
+                actionButton("retour_accueil_sim1", "Retour à l'accueil", 
+                             icon = icon("arrow-left"),
+                             style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+              )
+            )
+          ),
+          
+          
+          #### Boîte d'explication----
+          bs4Card(
+            title = "ℹ️ À propos de cette simulation",
+            status = "info",
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12,
+            p("Cette simulation a pour objectif de comparer la consommation électrique projetée d'un ou plusieurs data centers (DC) avec la production totale d'énergie en France selon le rapport de RTE, sur la période 2025–2035."),
+            p("Les projections de consommation sont établies à partir des estimations de puissance du data center actuellement en construction à Éybens."),
+            
+            tags$hr(),
+            
+            p(strong("📈 Hypothèses d'évolution :"), "Les prévisions suivent les étapes de développement du projet Data One :"),
+            tags$ul(
+              tags$li("2025 : 15 MW (~0,13 TWh/an)"),
+              tags$li("2026 : 200 MW (~1,75 TWh/an)"),
+              tags$li("2028 : 400 MW (~3,50 TWh/an)"),
+              tags$li("2035 : 1 000 MW (~8,76 TWh/an)")
+            ),
+            
+            p("🏗️ La simulation permet d'extrapoler jusqu'à 35 data centers, en cohérence avec les ambitions exprimées par les pouvoirs publics en matière d'infrastructures numériques, notamment dans le cadre du développement de l'intelligence artificielle."),
+            
+            tags$hr(),
+            
+            p(strong("📊 Représentation graphique :")),
+            tags$ul(
+              tags$li("Les points rouges indiquent la consommation cumulée des data centers ajoutée à la consommation énergétique actuelle"),
+              tags$li("La courbe verte représente la trajectoire de référence de la production énergétique nationale"),
+              tags$li("Les pointillés encadrant cette courbe correspondent aux intervalles de variation (minima et maxima) issus des différents scénarios prospectifs élaborés par RTE"),
+              tags$li("Le pointillé noir représente la trajectoire de référence de la production énergétique nationale")
+            ),
+            
+            tags$hr(),
+            
+            p(strong("⚡ Équivalent en unités de production :"), "La simulation permet de comparer la consommation projetée des data centers en 2035 avec la production nécessaire par filière :"),
+            tags$ul(
+              tags$li("Réacteurs nucléaires"),
+              tags$li("Grands barrages hydrauliques"),
+              tags$li("Centrales à charbon"),
+              tags$li("Éoliennes"),
+              tags$li("Panneaux solaires"),
+              tags$li("Centrales à biomasse")
+            ),
+            
+            tags$hr(),
+            
+            p(strong("💡 Conversion des unités :"), "Pour comparer les consommations projetées, il est nécessaire de convertir les unités de GW en GWh/an selon la formule :"),
+            p(em("Énergie annuelle (GWh/an) = Puissance (GW) × 24 heures × 365 jours")),
+            p("Exemple pour 2035 : 1 GW = 1 × 24 × 365 = 8 760 GWh/an = 8,76 TWh/an"),
+            
+            tags$hr(),
+            
+            p(strong("🎯 Objectif :"), "Cette simulation vise à éclairer les enjeux d'articulation entre les besoins énergétiques croissants des infrastructures numériques et les capacités de production énergétique du pays dans une perspective de planification énergétique à long terme.")
+          )
+        )
+      ),
+      
+      #### Paramètres de simulation----
+      div(style = "margin-bottom: 30px;",
+          fluidRow(
+            column(6,
+                   div(class = "modern-energy-card", 
+                       style = "border-left-color: #8b5cf6; min-height: 320px;",
+                       div(class = "energy-card-header",
+                           div(class = "energy-icon-circle", 
+                               style = "background: linear-gradient(135deg, #8b5cf6, #7c3aed);",
+                               icon("sliders-h")
+                           ),
+                           div(style = "text-align: right;",
+                               h3("Configuration", class = "energy-value-large", style = "color: #8b5cf6;"),
+                               p("Simulation interactive", class = "energy-capacity-info")
+                           )
+                       ),
+                       div(
+                         p("Paramètres de simulation", class = "energy-subtitle-text"),
+                         div(style = "margin-top: 15px;",
+                             sliderInput("nb_dc", 
+                                         label = div("Nombre de Data Centers", 
+                                                     style = "font-weight: 600; color: #495057; margin-bottom: 10px;"),
+                                         min = 1, 
+                                         max = 35, 
+                                         value = 1,
+                                         step = 1,
+                                         ticks = FALSE)
+                         )
+                       )
+                   )
+            ),
+            
+            column(6,
+                   div(class = "modern-energy-card", 
+                       style = "border-left-color: #f59e0b; min-height: 320px;",
+                       div(class = "energy-card-header",
+                           div(class = "energy-icon-circle", 
+                               style = "background: linear-gradient(135deg, #f59e0b, #d97706);",
+                               icon("info-circle")
+                           ),
+                           div(style = "text-align: right;",
+                               h3("Référence", class = "energy-value-large", style = "color: #f59e0b;"),
+                               p("Données de base", class = "energy-capacity-info")
+                           )
+                       ),
+                       div(
+                         p("Données de référence", class = "energy-subtitle-text"),
+                         div(style = "margin-top: 15px;",
+                             tags$ul(
+                               style = "list-style-type: none; padding-left: 0; margin-bottom: 0;",
+                               tags$li(
+                                 style = "margin-bottom: 10px; display: flex; align-items: flex-start; font-size: 13px;",
+                                 div(class = "energy-icon-circle", 
+                                     style = "background: linear-gradient(135deg, #226D68, #226D68); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
+                                     icon("industry", style = "font-size: 12px; color: white;")
+                                 ),
+                                 div(
+                                   "Production de départ 2025 : ", 
+                                   tags$strong("538 TWh", style = "color: #f59e0b;")
+                                 )
+                               ),
+                               tags$li(
+                                 style = "margin-bottom: 10px; display: flex; align-items: flex-start; font-size: 13px;",
+                                 div(class = "energy-icon-circle", 
+                                     style = "background: linear-gradient(135deg, #6c757d, #495057); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
+                                     icon("home", style = "font-size: 12px; color: white;")
+                                 ),
+                                 div(
+                                   "Consommation actuelle : ", 
+                                   tags$strong("442 TWh", style = "color: #f59e0b;")
+                                 )
+                               ),
+                               tags$li(
+                                 style = "display: flex; align-items: flex-start; font-size: 13px;",
+                                 div(class = "energy-icon-circle", 
+                                     style = "background: linear-gradient(135deg, #D46F4D, #D46F4D); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
+                                     icon("diamond", style = "font-size: 12px; color: white;")
+                                 ),
+                                 div(
+                                   "Points rouge : paliers DC (2025, 2026, 2028, 2035)"
+                                 )
+                               )
+                             )
+                         )
+                       )
+                   )
+            )
+          )
+      ),
+      
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            h3(icon("chart-line"), "Tendances de consommation et production énergétique entre 2000 et 2050", class = "section-title"),
+            plotOutput("energiePlot", height = "300px")
+          )
+        )
+      ),
+      
+      
+      #### Graphique principal----
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            h3(
+              icon("chart-line", style = "margin-right: 8px;"),
+              "Simulation de Projection : Production vs Consommation Énergétique 2025–2035",
+              class = "section-title"
+            ),
+            plotlyOutput("energy_plot", height = "600px"),
+            p(
+              "Les lignes de référence suivent les scénarios présentés dans le rapport ",
+              tags$em("Futurs énergétique 2050"),
+              " de RTE publié en 2022.",
+              style = "margin-top: 12px; font-size: 0.9em; color: #555;"
+            )
+          )
+        )
+      ),
+      
+      br(), br(),
+      fluidRow(
+        column(12,
+               h2("Équivalent en unités de production en 2035 :", class = "section-title")
+        )
+      ),
+      
+      # Première ligne : Nucléaire, Hydro, Charbon
+      fluidRow(
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #f97316;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #f97316, #ea580c);",
+                           icon("atom")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("nuke_value"), class = "energy-value-large", style = "color: #f97316;"),
+                           h6(p("Réacteurs nucléaires en France - 56"), class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Réacteurs nucléaires", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #3b82f6;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #3b82f6, #1d4ed8);",
+                           icon("tint")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("hydro_value"), class = "energy-value-large", style = "color: #3b82f6;")
+                       )
+                   ),
+                   div(
+                     p("Grands barrages", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #6b7280;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #6b7280, #4b5563);",
+                           icon("industry")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("coal_value"), class = "energy-value-large", style = "color: #6b7280;")
+                       )
+                   ),
+                   div(
+                     p("Centrales à charbon", class = "energy-subtitle-text")
+                   )
+               )
+        )
+      ),
+      
+      # Deuxième ligne : Éolien, Solaire, Biomasse
+      fluidRow(
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #14b8a6;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #14b8a6, #0d9488);",
+                           icon("wind")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("wind_value"), class = "energy-value-large", style = "color: #14b8a6;"),
+                           h6(textOutput("wind_surface"), class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Éoliennes terrestres", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #eab308;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #eab308, #ca8a04);",
+                           icon("sun")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("solar_value"), class = "energy-value-large", style = "color: #eab308;"),
+                           h6(textOutput("solar_surface"), class = "energy-capacity-info")  # <-- ici
+                       )
+                   ),
+                   div(
+                     p("Installations photovoltaïques", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #22c55e;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #22c55e, #16a34a);",
+                           icon("leaf")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("bio_value"), class = "energy-value-large", style = "color: #22c55e;")
+                       )
+                   ),
+                   div(
+                     p("Centrales à biomasse", class = "energy-subtitle-text")
+                   )
+               )
+        )
+      ),
+      valueBoxOutput("wind_surface_box"),
+      valueBoxOutput("solar_surface_box"),
+      
+      htmlOutput("surface_info")  # boîte d'info explicative
+    ), 
+    
+    
+    
+    
+    ### 3.2 Sim2 ----
+    tabItem(
+      tabName = "sim2",
+      
+      #### Boite d'explication----
+      fluidRow(
+        column(
+          width = 12,
+          
+          
+          fluidRow(
+            column(
+              width = 12,
+              div(
+                style = "margin-bottom: 20px;",
+                actionButton("retour_accueil_sim2", "Retour à l'accueil", 
+                             icon = icon("arrow-left"),
+                             style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+              )
+            )
+          ),
+          
+          
+          bs4Card(
+            title = "ℹ️ À propos de cette simulation",
+            status = "info",
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12,
+            p("Ce graphique permet de représenter et de comparer le nombre d'habitants équivalents pour chaque palier de consommation du data center d'Eybens entre 2025 et 2035. Et ce, en prenant des exemples de profils de consommation par personne à travers le monde et en France."),
+            p("Les barres représentent le nombre d'habitants équivalents selon la consommation moyenne."),
+            p("Cochez les profils pour adapter la simulation."),
+            tags$hr(),
+            p(strong("🔍 Estimation initiale :"), "La consommation du DC est basée sur le data center actuellement en construction à Éybens."),
+            p(strong("📈 Évolution prévue :"), "Les projections suivent les plans de développement de Data One :"),
+            tags$ul(
+              tags$li("2025 : 15 MW"),
+              tags$li("2026 : 200 MW"),
+              tags$li("2028 : 400 MW"),
+              tags$li("2035 : 1 000 MW")
+            ),
+            tags$hr(),
+            p(strong("💡 Conversion des unités :"), "Pour comparer les consommations projetées de Data One aux consommations annuelles moyennes d'individus, il est nécessaire de convertir l'unité des projections de Data One (exprimées en GW) afin d'obtenir des valeurs en GWh/an. Pour ce faire, on applique la formule suivante :"),
+            p(em("Énergie annuelle (en GWh/an) = Puissance (GW) × nombre d'heures d'utilisation par jour × nombre de jours d'utilisation par an")),
+            p("Par exemple, calculons la conversion de la projection de 2035 pour 1 GW :"),
+            p(em("Énergie annuelle (GWh) = 1 × 24 × 365 = 8 760 GWh/an")),
+            tags$ul(
+              tags$li("Ou encore 8 760 000 000 kWh/an"),
+              tags$li("Soit 8 760 000 MWh/an"),
+              tags$li("Ou l'équivalent de 8,76 TWh/an")
+            ),
+            p("On peut donc diviser les différentes consommations annuelles projetées par la consommation moyenne souhaitée pour obtenir le nombre d'individus équivalents.")
+          )
+        )
+      ),
+      
+      #### Graphique 1 - Comparaison avec consommation par pays----
+      fluidRow(
+        bs4Card(
+          title = "Simulation : Comparaison avec la consommation par habitant à travers le monde",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          collapsible = TRUE,
+          collapsed = FALSE,
+          fluidRow(
+            column(
+              width = 4,
+              uiOutput("checkbox_group_conso")
+            ),
+            column(
+              width = 8,
+              plotlyOutput("barplot")
+            )
+          ),
+          p(),
+          p(strong("💡 Aide d'interprétation pour l'échelle mondiale :"),"Pour un data center d’une puissance de 1 GW, cela correspond à la consommation énergétique annuelle de 3 275 991 personnes, basée sur la moyenne mondiale de 2,674 MWh par personne et par an."),
+          footer = "Sources : Ministère de la Transistion Écologique et de la Cohésion des Territoires : Chiffres clés de l'énergie, 2024"
+        )
+      ),
+      
+      #### Encarts info pour les habitants équivalents pour le Mali, le Qatar et la France
+      fluidRow(
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #22c55e;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #22c55e, #15803d);",
+                           icon("leaf")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("qatar_1gw"), class = "energy-value-large", style = "color: #22c55e;"),
+                           p(textOutput("qatar_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                       )
+                   ),
+                   div(
+                     p("Habitants équivalents – Qatar", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #eab308;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #eab308, #ca8a04);",
+                           icon("leaf")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("france_1gw"), class = "energy-value-large", style = "color: #eab308;"),
+                           p(textOutput("france_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                       )
+                   ),
+                   div(
+                     p("Habitants équivalents – France", class = "energy-subtitle-text")
+                   )
+               )
+        ),
+        column(4,
+               div(class = "modern-energy-card", 
+                   style = "border-left-color: #f43f5e;",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle", 
+                           style = "background: linear-gradient(135deg, #f43f5e, #be123c);",
+                           icon("leaf")
+                       ),
+                       div(style = "text-align: right;",
+                           h3(textOutput("mali_1gw"), class = "energy-value-large", style =  "color: #f43f5e;"),
+                           p(textOutput("mali_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                       )
+                   ),
+                   div(
+                     p("Habitants équivalents – Mali", class = "energy-subtitle-text")
+                   )
+               )
+        )
+      ),
+      
+      #### Graphique 2 - Simulation personnalisée----
+      fluidRow(
+        bs4Card(
+          title = "Simulation personnalisée : Comparer jusqu'à 8 consommations de votre choix",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          collapsible = TRUE,
+          collapsed = FALSE,
+          sidebarLayout(
+            sidebarPanel(
+              lapply(1:8, function(i) {
+                cond <- if (i == 1) {
+                  "true"
+                } else {
+                  prev_nom <- paste0("input.nom_perso_", i - 1)
+                  prev_val <- paste0("input.val_perso_", i - 1)
+                  paste0(prev_nom, " !== '' && ", prev_val, " > 0")
+                }
+                
+                conditionalPanel(
+                  condition = cond,
+                  fluidRow(
+                    column(6, textInput(paste0("nom_perso_", i), paste0("Entité ", i), value = paste("Perso", i))),
+                    column(3, numericInput(paste0("val_perso_", i), "Valeur", value = NA, min = 0, step = 0.01)),
+                    column(3, selectInput(paste0("unit_perso_", i), "Unité", choices = c("kWh/an", "MWh/an", "GWh/an"), selected = "MWh/an"))
+                  )
+                )
+              })
+            ),
+            mainPanel(
+              plotlyOutput("barplot_personalisee")
+            )
+          )
+        )
+      )
+    )
   
    )
   )
  )
-)     
+  

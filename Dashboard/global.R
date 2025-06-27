@@ -29,6 +29,9 @@ lapply(required_packages, library, character.only = TRUE)
   library(ggtext)
 }
 
+`%||%` <- function(a, b) {
+  if (!is.null(a)) a else b
+}
 
 
 dc_europe <- readRDS(here("dashboard", "data", "dc_europe.rds"))

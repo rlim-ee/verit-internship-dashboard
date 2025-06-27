@@ -20,6 +20,14 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "ara")
   })
   
+  observeEvent(input$go_sim1, {
+    updateTabItems(session, "tabs", "sim1")
+  })
+  
+  observeEvent(input$go_sim2, {
+    updateTabItems(session, "tabs", "sim2")
+  })
+  
   observeEvent(input$retour_accueil_dc_europe, {
     updateTabItems(session, inputId = "tabs", selected = "home")
   })
@@ -37,6 +45,14 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$retour_accueil_ara, {
+    updateTabItems(session, inputId = "tabs", selected = "home")
+  })
+  
+  observeEvent(input$retour_accueil_sim1, {
+    updateTabItems(session, inputId = "tabs", selected = "home")
+  })
+  
+  observeEvent(input$retour_accueil_sim2, {
     updateTabItems(session, inputId = "tabs", selected = "home")
   })
   
@@ -946,6 +962,676 @@ server <- function(input, output, session) {
   })
 
   
+  
+  ## 3.1. Simulation 1----
+  
+  ### Data----
+  
+  # Données de base
+  consommation_actuelle <- 442  # TWh
+  
+  # Données DC par paliers (TWh par DC)
+  dc_data <- data.frame(
+    Annee = c(2025, 2026, 2028, 2035),
+    Conso = c(0.131400, 1.752000, 3.504000, 8.760000)
+  )
+  
+  # Projections de production (TWh) - départ 538 en 2025
+  production_data <- data.frame(
+    Annee = c(2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035),
+    Min = c(538, 550, 560, 565, 568, 570, 572, 575, 578, 580, 585),
+    Max = c(538, 570, 580, 590, 595, 600, 610, 615, 620, 628, 636),
+    Ref = c(538, 560, 570, 577.5, 581.5, 585, 591, 595, 599, 604, 610.5)
+  )
+  
+  # Projections de consommation (TWh) - départ 442 en 2025
+  consommation_data <- data.frame(
+    Annee = c(2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035),
+    Ref = c(442, 455, 468, 481, 494, 508, 514, 520, 526, 532, 538)
+  )
+  
+  
+  # Calcul de la consommation totale aux paliers
+  consommation_totale <- reactive({
+    nb_dc <- input$nb_dc
+    
+    # Consommation totale = actuelle + (DC * nb_dc) pour chaque palier
+    dc_data$Conso_Totale <- consommation_actuelle + (dc_data$Conso * nb_dc)
+    
+    return(dc_data)
+  })
+  
+  ### tendances----
+  # Dataframe de consommation électrique 2000-2024
+  conso_hist <- data.frame(
+    Annee = c(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+              2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024),
+    Conso = c(425, 434, 434, 449, 460, 464, 468, 467, 481, 472, 499, 472, 487,
+              495, 463, 474, 482, 481, 477, 472, 449, 472, 454, 439, 442)
+  )
+  
+  
+  # Dataframe de projection de consommation électrique 2025-2050 (en TWh)
+  conso_p <- data.frame(
+    Annee = 2025:2050,
+    Ref = c(442, 455, 468, 481, 494, 508, 514, 520, 526, 532, 538,
+            544, 550, 556, 562, 568, 574, 580, 586, 592, 598, 604, 610, 616, 622, 628)
+  )
+  
+  # Nombre d'années
+  n <- nrow(conso_p)
+  
+  # Écart qui croît linéairement de 0 à 50 TWh
+  delta <- seq(0, 50, length.out = n)
+  
+  # Calcul des bornes Min et Max
+  conso_p$Min <- conso_p$Ref - delta
+  conso_p$Max <- conso_p$Ref + delta
+  
+  # Optionnel : arrondir
+  conso_p$Min <- round(conso_p$Min, 1)
+  conso_p$Max <- round(conso_p$Max, 1)
+  
+  # Dataframe de production électrique 2000-2024
+  prod_hist <- data.frame(
+    Annee = c(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+              2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024),
+    Prod = c(517, 522, 533, 539, 546, 547, 546, 541, 545, 515, 550, 543, 542, 550,
+             538, 545, 531, 528, 548, 536, 500, 522, 446, 495, 539)
+  )
+  # Dataframe de projection de production électrique 2025-2050 (en TWh)
+  prod_p <- data.frame(
+    Annee = c(2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035,
+              2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050),
+    Min = c(538, 550, 560, 565, 568, 570, 572, 575, 578, 580, 585,
+            590, 595, 600, 610, 620, 630, 640, 650, 660, 665, 670, 675, 680, 685, 690),
+    Max = c(538, 570, 580, 590, 595, 600, 610, 615, 620, 628, 636,
+            645, 655, 665, 675, 685, 695, 705, 715, 725, 735, 740, 745, 750, 755, 760),
+    Ref = c(538, 560, 570, 577.5, 581.5, 585, 591, 595, 599, 604, 610.5,
+            617.5, 625, 632.5, 642.5, 652.5, 662.5, 672.5, 682.5, 692.5, 700, 705, 710, 715, 720, 725)
+  )
+  
+  output$energiePlot <- renderPlot({
+    
+    # Ajouter une colonne 'Type' à chaque table
+    conso_hist <- conso_hist %>% mutate(Type = "Consommation")
+    prod_hist <- prod_hist %>% mutate(Type = "Production")
+    
+    conso_proj <- conso_p %>%
+      rename(Value = Ref) %>%
+      mutate(Type = "Consommation")
+    
+    prod_proj <- prod_p %>%
+      rename(Value = Ref) %>%
+      mutate(Type = "Production")
+    
+    # Lignes de données (historique + projections)
+    data_lines <- bind_rows(
+      conso_hist %>% rename(Value = Conso) %>% select(Annee, Value, Type),
+      prod_hist %>% rename(Value = Prod) %>% select(Annee, Value, Type),
+      conso_proj %>% select(Annee, Value, Type),
+      prod_proj %>% select(Annee, Value, Type)
+    )
+    
+    # Bandes min-max
+    data_ribbons <- bind_rows(
+      conso_proj %>% select(Annee, ymin = Min, ymax = Max, Type),
+      prod_proj %>% select(Annee, ymin = Min, ymax = Max, Type)
+    )
+    
+    # Calculer la position verticale du texte d’annotation
+    ymax_plot <- max(data_ribbons$ymax, data_lines$Value)
+    ypos_text <- ymax_plot * 1.05
+    
+    # Graphique
+    ggplot() +
+      geom_ribbon(data = data_ribbons,
+                  aes(x = Annee, ymin = ymin, ymax = ymax, fill = Type),
+                  alpha = 0.2) +
+      geom_line(data = data_lines,
+                aes(x = Annee, y = Value, color = Type),
+                size = 1.2) +
+      geom_vline(xintercept = c(2025, 2035), linetype = "dashed", color = "gray40", size = 1) +
+      annotate("text", x = 2030, y = ypos_text, label = "Zone de simulation", size = 5, fontface = "italic", color = "gray20") +
+      scale_color_manual(values = c("Consommation" = "#0072B2", "Production" = "#009E73")) +
+      scale_fill_manual(values = c("Consommation" = "#0072B2", "Production" = "#009E73")) +
+      labs(x = NULL, y = "TWh", color = "", fill = "") +
+      theme_minimal(base_size = 14) +
+      theme(legend.position = "bottom")
+    
+  })
+  
+  ### Graphique principal----
+  output$energy_plot <- renderPlotly({
+    conso_totale <- consommation_totale()
+    nb_dc <- input$nb_dc
+    
+    # Création du graphique
+    p <- plot_ly()
+    
+    # Surface entre min et max
+    p <- p %>% add_trace(
+      x = c(production_data$Annee, rev(production_data$Annee)),
+      y = c(production_data$Max, rev(production_data$Min)),
+      type = 'scatter',
+      mode = 'none',
+      fill = 'toself',
+      fillcolor = 'rgba(34, 109, 104, 0.2)',
+      line = list(color = 'rgba(40, 167, 69, 0)'),
+      showlegend = FALSE,
+      hoverinfo = 'skip',
+      name = 'Zone de production'
+    )
+    
+    # Ligne de référence
+    p <- p %>% add_trace(
+      x = production_data$Annee,
+      y = production_data$Ref,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de production de référence',
+      line = list(color = '#009E73', width = 4),
+      hovertemplate = '<b>Référence</b><br>Année: %{x}<br>Production: %{y} TWh<extra></extra>'
+    )
+    
+    # Ligne minimum
+    p <- p %>% add_trace(
+      x = production_data$Annee,
+      y = production_data$Min,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de production minimum de référence',
+      line = list(color = '#009E73', width = 2, dash = 'dash'),
+      hovertemplate = '<b>Référence Minimum</b><br>Année: %{x}<br>Production: %{y} TWh<extra></extra>'
+    )
+    
+    # Ligne maximum
+    p <- p %>% add_trace(
+      x = production_data$Annee,
+      y = production_data$Max,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de production maximum de référence',
+      line = list(color = '#009E73', width = 2, dash = 'dash'),
+      hovertemplate = '<b>Référence Maximum</b><br>Année: %{x}<br>Production: %{y} TWh<extra></extra>'
+    )
+    
+    # Ligne de référence conso
+    p <- p %>% add_trace(
+      x = consommation_data$Annee,
+      y = consommation_data$Ref,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de consommation de référence',
+      line = list(color = '#0072B2', width = 4),
+      hovertemplate = '<b>Référence</b><br>Année: %{x}<br>Consommation: %{y} TWh<extra></extra>'
+    )
+    
+    # Filtrer conso_p pour les années 2025 à 2035
+    conso_sub <- conso_p[conso_p$Annee >= 2025 & conso_p$Annee <= 2035, ]
+    
+    # Ligne Min consommation
+    p <- p %>% add_trace(
+      x = conso_sub$Annee,
+      y = conso_sub$Min,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de consommation minimum de référence',
+      line = list(color = '#0072B2', width = 2, dash = 'dash'),
+      hovertemplate = '<b>Consommation Min</b><br>Année: %{x}<br>Consommation: %{y} TWh<extra></extra>'
+    )
+    
+    # Ligne Max consommation
+    p <- p %>% add_trace(
+      x = conso_sub$Annee,
+      y = conso_sub$Max,
+      type = 'scatter',
+      mode = 'lines',
+      name = 'Projection de consommation maximum de référence',
+      line = list(color = '#0072B2', width = 2, dash = 'dash'),
+      hovertemplate = '<b>Consommation Max</b><br>Année: %{x}<br>Consommation: %{y} TWh<extra></extra>'
+    )
+    
+    # Surface entre min et max
+    p <- p %>% add_trace(
+      x = c(conso_sub$Annee, rev(conso_sub$Annee)),
+      y = c(conso_sub$Max, rev(conso_sub$Min)),
+      type = 'scatter',
+      mode = 'none',
+      fill = 'toself',
+      fillcolor = 'rgba(34, 109, 104, 0.2)',
+      line = list(color = 'rgba(40, 167, 69, 0)'),
+      showlegend = FALSE,
+      hoverinfo = 'skip',
+      name = 'Zone de consommation'
+    )
+    
+    
+    
+    # Points jaunes : consommation + DC (avec année affichée)
+    p <- p %>% add_trace(
+      x = conso_totale$Annee,
+      y = conso_totale$Conso_Totale,
+      type = 'scatter',
+      mode = 'markers+text',  # 🔽 Ajouter texte
+      name = paste0('Simulation : Consommation brute actuelle + consommation de ', nb_dc, ' DC par palier'),
+      marker = list(
+        color = '#D46F4D',
+        size = 14,
+        symbol = 'diamond-open-dot',
+        line = list(color = '#D46F4D', width = 3)
+      ),
+      text = conso_totale$Annee,            # 🔽 Texte = année
+      textposition = 'top center',          # 🔽 Position du texte
+      hovertemplate = '<b>Consommation projetée</b><br>Année: %{x}<br>Consommation: %{y:.1f} TWh/an<br>%{text}<extra></extra>',
+      showlegend = TRUE
+    )
+    
+    
+    p <- p %>% layout(
+      title = list(
+        text = '',
+        font = list(size = 16, color = '#495057')
+      ),
+      xaxis = list(
+        title = list(text = 'Année', font = list(size = 14, color = '#495057')),
+        showgrid = TRUE,
+        gridcolor = '#e9ecef',
+        tickmode = 'linear',
+        dtick = 1,
+        tickfont = list(size = 12)
+      ),
+      yaxis = list(
+        title = list(text = 'Énergie (TWh/an)', font = list(size = 14, color = '#495057')),
+        showgrid = TRUE,
+        gridcolor = '#e9ecef',
+        tickfont = list(size = 12)
+      ),
+      legend = list(
+        orientation = 'h',
+        y = -0.2,
+        x = 0.5,
+        xanchor = 'center',
+        font = list(size = 12)
+      ),
+      plot_bgcolor = '#ffffff',
+      paper_bgcolor = '#ffffff',
+      font = list(family = 'system-ui', color = '#495057'),
+      hovermode = 'closest',
+      margin = list(t = 20, r = 40, b = 100, l = 60),
+      
+      # 🔽 Ajout des annotations pour les lignes de référence
+      annotations = list(
+        list(
+          x = max(production_data$Annee),
+          y = tail(production_data$Ref, 1) + 3,  # 🔼 Légère élévation
+          text = "<b>Production de référence</b>",
+          showarrow = FALSE,
+          xanchor = "center",       # 🔄 Centré horizontalement
+          yanchor = "bottom",       # 🔼 Texte au-dessus du point
+          font = list(color = '#226D68', size = 13)
+        ),
+        list(
+          x = max(consommation_data$Annee),
+          y = tail(consommation_data$Ref, 1) + 3,
+          text = "<b>Consommation de référence</b>",
+          showarrow = FALSE,
+          xanchor = "center",
+          yanchor = "bottom",
+          font = list(color = 'black', size = 13)
+        )
+      )
+    )
+    
+    
+    # Configuration des options
+    p <- p %>% config(
+      displayModeBar = TRUE,
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c('pan2d', 'lasso2d', 'select2d', 'autoScale2d')
+    )
+    
+    return(p)
+  })
+  
+  # Informations réactives pour la carte de paramètres
+  output$info_conso_dc <- renderText({
+    nb_dc <- input$nb_dc
+    conso_dc_2025 <- dc_data$Conso[1] * nb_dc
+    paste("Consommation DC en 2025:", round(conso_dc_2025, 3), "TWh")
+  })
+  
+  output$info_conso_totale <- renderText({
+    nb_dc <- input$nb_dc
+    conso_dc_2035 <- dc_data$Conso[4] * nb_dc
+    conso_totale_2035 <- consommation_actuelle + conso_dc_2035
+    paste("Consommation actuelle (2025) + consommation DC en 2035:", round(conso_totale_2035, 0), "TWh")
+  })
+  
+  ##### Value boxes----
+  
+  # Constantes mises à jour selon ton retour
+  energy_per_dc <- 8700  # GWh par DC
+  
+  output$wind_surface <- renderText({
+    production_par_eolienne_gwh <- 6.8       # production moyenne d'une éolienne terrestre (en GWh/an)
+    surface_par_eolienne_km2 <- 0.78         # surface moyenne nécessaire par éolienne (en km²)
+    
+    total_gwh <- input$nb_dc * energy_per_dc
+    nb_eoliennes <- total_gwh / production_par_eolienne_gwh
+    surface_km2 <- round(nb_eoliennes * surface_par_eolienne_km2, 2)
+    
+    paste0("≈ ", surface_km2, " km² occupés")
+  })
+  
+  
+  output$solar_surface <- renderText({
+    taille_moyenne_installation_m2 <- 140
+    production_totale_twh_france <- 25
+    nb_installations_france <- 600000
+    production_par_installation_twh <- production_totale_twh_france / nb_installations_france
+    
+    total_twh <- input$nb_dc * energy_per_dc / 1000  # GWh → TWh
+    nb_installations_requises <- total_twh / production_par_installation_twh
+    surface_totale_m2 <- nb_installations_requises * taille_moyenne_installation_m2
+    surface_km2 <- round(surface_totale_m2 / 1e6, 2)
+    
+    paste0("≈ ", surface_km2, " km² occupés")
+  })
+  
+  
+  
+  
+  # Infobox explicative
+  output$surface_info <- renderUI({
+    HTML(
+      "<p><em><strong>Note :</strong> La surface indiquée pour l’éolien correspond à la surface totale mobilisée (zones d’espacement, zones de sécurité, etc.), qui n’est pas entièrement artificialisée.</em></p>
+    <p><em>Pour le solaire, la surface correspond à une estimation plus proche de la surface réellement artificialisée au sol.</em></p>"
+    )
+  })
+  
+  
+  # Capacités des sources d'énergie
+  capacities <- list(
+    nuke = 8.2,    # TWh/an par réacteur
+    hydro = 1.5,   # TWh/an par barrage
+    wind = 0.004,  # TWh/an par éolienne
+    solar = 0.00004, # TWh/an par installation photovoltaique
+    coal = 3,      # TWh/an par centrale
+    bio = 0.1      # TWh/an par centrale
+  )
+  
+  # Calcul des équivalents
+  calculate_equivalent <- function(source) {
+    nb_dc <- input$nb_dc %||% 1
+    conso <- dc_data$Conso[dc_data$Annee == 2035] * nb_dc
+    round(conso / capacities[[source]])
+  }
+  
+  # Outputs pour les valeurs
+  output$nuke_value <- renderText({
+    format(calculate_equivalent("nuke"), big.mark = " ")
+  })
+  
+  output$hydro_value <- renderText({
+    format(calculate_equivalent("hydro"), big.mark = " ")
+  })
+  
+  output$coal_value <- renderText({
+    format(calculate_equivalent("coal"), big.mark = " ")
+  })
+  
+  output$wind_value <- renderText({
+    format(calculate_equivalent("wind"), big.mark = " ")
+  })
+  
+  output$solar_value <- renderText({
+    format(calculate_equivalent("solar"), big.mark = " ")
+  })
+  
+  output$bio_value <- renderText({
+    format(calculate_equivalent("bio"), big.mark = " ")
+  })
+  
+  # Animation des barres de progression
+  observe({
+    # Calculer toutes les valeurs
+    values <- c(
+      nuke = calculate_equivalent("nuke"),
+      hydro = calculate_equivalent("hydro"),
+      coal = calculate_equivalent("coal"),
+      wind = calculate_equivalent("wind"),
+      solar = calculate_equivalent("solar"),
+      bio = calculate_equivalent("bio")
+    )
+    
+    # Trouver la valeur maximale pour normaliser
+    max_val <- max(values)
+    
+    # Mettre à jour chaque barre de progression
+    for(source in names(values)) {
+      progress_percent <- min(100, (values[[source]] / max_val) * 100)
+      
+      session$sendCustomMessage(
+        type = "updateProgress",
+        message = list(
+          id = paste0(source, "_progress"),
+          width = paste0(progress_percent, "%")
+        )
+      )
+    }
+  })
+  
+  
+  # 3.2. Simulation 2 ----
+  
+  ### Data----
+  
+  # Données consommation annuelle par habitant (en MWh/an)
+  consommation_habitants <- data.frame(
+    Pays = c("Mondial", "France (68,29 M)", "Qatar (2,66 M)", "Mali (28,24 M)", "Etats-Unis (340,1 M)", "Chine (1 411,41 M)", "Inde (1438,60 M)", "Russie (143,8 M)"),
+    Conso_MWh = c(2.674, 2.223, 226.848, 0.173, 12.705, 6.113, 1.395, 6.961)
+  )
+  
+  # Trier les autres pays par ordre alphabétique, sauf Mondial qui reste en premier
+  autres_pays <- consommation_habitants %>% 
+    filter(Pays != "Mondial") %>%
+    arrange(Pays)
+  
+  consommation_habitants <- bind_rows(
+    consommation_habitants %>% filter(Pays == "Mondial"),
+    autres_pays
+  )
+  
+  # Données des paliers de consommation du data center (MW → MWh/an)
+  dc_paliers <- data.frame(
+    Nom = c("15 MW", "200 MW", "400 MW", "1 GW"),
+    Puissance_MW = c(15, 200, 400, 1000)
+  ) %>%
+    mutate(Conso_MWh_An = Puissance_MW * 24 * 365)
+  
+  # Palette de couleurs
+  palette_colors <- c("#60CCEC", "#FEE552", "#A1C740", "#E75C38", "#FB7A25", "#084C64", "#720019", "#226D68")
+  
+  # Valeur fixe : consommation annuelle d’un DC de 1 GW
+  dc_1gw_conso <- 8760000  # en MWh/an
+  
+  # --- Nombre d’habitants équivalents à 1 GW
+  output$france_1gw <- renderText({
+    france_mwh <- consommation_habitants %>% filter(grepl("France", Pays)) %>% pull(Conso_MWh)
+    if (length(france_mwh) > 0) format(round(dc_1gw_conso / france_mwh), big.mark = " ") else ""
+  })
+  
+  output$qatar_1gw <- renderText({
+    qatar_mwh <- consommation_habitants %>% filter(grepl("Qatar", Pays)) %>% pull(Conso_MWh)
+    if (length(qatar_mwh) > 0) format(round(dc_1gw_conso / qatar_mwh), big.mark = " ") else ""
+  })
+  
+  output$mali_1gw <- renderText({
+    mali_mwh <- consommation_habitants %>% filter(grepl("Mali", Pays)) %>% pull(Conso_MWh)
+    if (length(mali_mwh) > 0) format(round(dc_1gw_conso / mali_mwh), big.mark = " ") else ""
+  })
+  
+  # --- Populations totales affichées dans les encarts
+  output$france_pop <- renderText({
+    "Population totale : 68 290 000"
+  })
+  
+  output$qatar_pop <- renderText({
+    "Population totale : 2 660 000"
+  })
+  
+  output$mali_pop <- renderText({
+    "Population totale : 28 243 609"
+  })
+  
+  # UI : Checkboxes sans sidebarPanel
+  output$checkbox_group_conso <- renderUI({
+    checkboxGroupInput(
+      inputId = "pays_selection",
+      label = "Choisissez les pays (Population total en Million) à afficher :",
+      choices = consommation_habitants$Pays,
+      selected = "Mondial"
+    )
+  })
+  
+  ### Graphique 1 : Comparaison avec pays----
+  output$barplot <- renderPlotly({
+    req(input$pays_selection)
+    
+    selected_data <- consommation_habitants %>%
+      filter(Pays %in% input$pays_selection)
+    
+    comparison <- expand.grid(Pays = selected_data$Pays, DC = dc_paliers$Nom) %>%
+      left_join(selected_data, by = "Pays") %>%
+      left_join(dc_paliers, by = c("DC" = "Nom")) %>%
+      mutate(
+        Habitants_equivalents = Conso_MWh_An / Conso_MWh,
+        DC = factor(DC, levels = dc_paliers$Nom),
+        NomPays = paste0(gsub(" \\(.*\\)", "", Pays), " (", Conso_MWh, " MWh/an)")
+      )
+    
+    # Déterminer l’échelle la plus adaptée
+    max_val <- max(comparison$Habitants_equivalents, na.rm = TRUE)
+    
+    if (max_val >= 1e6) {
+      scale_factor <- 1e6
+      y_title <- "Nombre d'habitants équivalents (en millions)"
+      hover_suffix <- " millions"
+    } else if (max_val >= 1e3) {
+      scale_factor <- 1e3
+      y_title <- "Nombre d'habitants équivalents (en milliers)"
+      hover_suffix <- " milliers"
+    } else {
+      scale_factor <- 1
+      y_title <- "Nombre d'habitants équivalents"
+      hover_suffix <- ""
+    }
+    
+    comparison <- comparison %>%
+      mutate(Habitants_equivalents_scaled = Habitants_equivalents / scale_factor)
+    
+    unique_pays <- unique(comparison$NomPays)
+    pays_colors <- setNames(palette_colors[1:length(unique_pays)], unique_pays)
+    
+    plot_ly(
+      data = comparison,
+      x = ~DC,
+      y = ~Habitants_equivalents_scaled,
+      color = ~NomPays,
+      colors = pays_colors,
+      type = 'bar',
+      text = ~NomPays,
+      hovertemplate = paste(
+        "Profil : %{text}<br>",
+        "Palier : %{x}<br>",
+        "Habitants équivalents : %{y:,.2f}", hover_suffix, "<extra></extra>"
+      )
+    ) %>%
+      layout(
+        title = "Nombre d'habitants équivalents par palier de consommation projeté du data center de Data One",
+        xaxis = list(title = "Paliers de puissance du Data Center de Eybens"),
+        yaxis = list(title = y_title),
+        barmode = 'group'
+      )
+  })
+  
+  
+  ### Graphique 2 — Personnalisé----
+  output$barplot_personalisee <- renderPlotly({
+    custom_data <- lapply(1:8, function(i) {
+      nom <- input[[paste0("nom_perso_", i)]]
+      val <- input[[paste0("val_perso_", i)]]
+      unit <- input[[paste0("unit_perso_", i)]]
+      
+      if (!is.null(val) && !is.na(val) && val > 0) {
+        conso_mwh <- switch(unit,
+                            "kWh/an" = val / 1000,
+                            "MWh/an" = val,
+                            "GWh/an" = val * 1000
+        )
+        return(data.frame(Pays = nom, Conso_MWh = conso_mwh))
+      } else {
+        return(NULL)
+      }
+    }) %>% bind_rows()
+    
+    if (nrow(custom_data) == 0) return(NULL)
+    
+    comparison <- expand.grid(Pays = custom_data$Pays, DC = dc_paliers$Nom) %>%
+      left_join(custom_data, by = "Pays") %>%
+      left_join(dc_paliers, by = c("DC" = "Nom")) %>%
+      mutate(
+        Habitants_equivalents = Conso_MWh_An / Conso_MWh,
+        DC = factor(DC, levels = dc_paliers$Nom),
+        NomPays = Pays
+      )
+    
+    # Déterminer l’unité la plus adaptée pour l’échelle de l’axe Y
+    max_val <- max(comparison$Habitants_equivalents, na.rm = TRUE)
+    
+    if (max_val >= 1e6) {
+      scale_factor <- 1e6
+      y_title <- "Nombre d'individus équivalents (en millions)"
+      hover_suffix <- " millions"
+    } else if (max_val >= 1e3) {
+      scale_factor <- 1e3
+      y_title <- "Nombre d'individus équivalents (en milliers)"
+      hover_suffix <- " milliers"
+    } else {
+      scale_factor <- 1
+      y_title <- "Nombre d'individus équivalents"
+      hover_suffix <- ""
+    }
+    
+    # Mise à l’échelle des valeurs
+    comparison <- comparison %>%
+      mutate(Habitants_equivalents_scaled = Habitants_equivalents / scale_factor)
+    
+    unique_pays <- unique(comparison$Pays)
+    pays_colors <- setNames(palette_colors[1:min(length(unique_pays), length(palette_colors))], unique_pays)
+    
+    plot_ly(
+      data = comparison,
+      x = ~DC,
+      y = ~Habitants_equivalents_scaled,
+      color = ~Pays,
+      colors = pays_colors,
+      type = 'bar',
+      text = ~Pays,
+      hovertemplate = paste(
+        "Nom : %{text}<br>",
+        "Palier : %{x}<br>",
+        "Habitants équivalents : %{y:,.2f}", hover_suffix, "<extra></extra>"
+      )
+    ) %>%
+      layout(
+        title = "Nombre d'individus équivalents par projections de consommations de Data One",
+        xaxis = list(title = "Paliers de puissance du Data Center de Eybens"),
+        yaxis = list(title = y_title),
+        barmode = 'group'
+      )
+  })
   
   
   
