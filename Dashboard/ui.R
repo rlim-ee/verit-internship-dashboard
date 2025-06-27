@@ -993,7 +993,9 @@ ui <- bs4DashPage(
           fluidRow(
             column(6,
                    div(class = "modern-energy-card", 
-                       style = "border-left-color: #8b5cf6; min-height: 320px;",
+                       style = "border-left-color: #8b5cf6; min-height: 360px;",
+                       
+                       # En-tête
                        div(class = "energy-card-header",
                            div(class = "energy-icon-circle", 
                                style = "background: linear-gradient(135deg, #8b5cf6, #7c3aed);",
@@ -1004,25 +1006,40 @@ ui <- bs4DashPage(
                                p("Simulation interactive", class = "energy-capacity-info")
                            )
                        ),
+                       
+                       # Contenu
                        div(
                          p("Paramètres de simulation", class = "energy-subtitle-text"),
-                         div(style = "margin-top: 15px;",
-                             sliderInput("nb_dc", 
-                                         label = div("Nombre de Data Centers", 
-                                                     style = "font-weight: 600; color: #495057; margin-bottom: 10px;"),
-                                         min = 1, 
-                                         max = 35, 
-                                         value = 1,
-                                         step = 1,
-                                         ticks = FALSE)
-                         )
+                         
+                         # Curseur DC
+                         sliderInput("nb_dc", 
+                                     label = div("Nombre de Data Centers", 
+                                                 style = "font-weight: 600; color: #495057; margin-bottom: 10px;"),
+                                     min = 1, 
+                                     max = 35, 
+                                     value = 1,
+                                     step = 1,
+                                     ticks = FALSE),
+                         
+                         # Curseur facteur de charge
+                         sliderInput("facteur_charge", 
+                                     label = div("Facteur de charge (%)", 
+                                                 style = "font-weight: 600; color: #495057; margin-bottom: 10px;"),
+                                     min = 0, 
+                                     max = 100, 
+                                     value = 100,
+                                     step = 1,
+                                     ticks = FALSE),
+                         
                        )
                    )
             ),
             
             column(6,
                    div(class = "modern-energy-card", 
-                       style = "border-left-color: #f59e0b; min-height: 320px;",
+                       style = "border-left-color: #f59e0b; min-height: 360px;",
+                       
+                       # En-tête
                        div(class = "energy-card-header",
                            div(class = "energy-icon-circle", 
                                style = "background: linear-gradient(135deg, #f59e0b, #d97706);",
@@ -1033,44 +1050,55 @@ ui <- bs4DashPage(
                                p("Données de base", class = "energy-capacity-info")
                            )
                        ),
+                       
+                       # Contenu
                        div(
                          p("Données de référence", class = "energy-subtitle-text"),
                          div(style = "margin-top: 15px;",
                              tags$ul(
                                style = "list-style-type: none; padding-left: 0; margin-bottom: 0;",
+                               
+                               # Production
                                tags$li(
                                  style = "margin-bottom: 10px; display: flex; align-items: flex-start; font-size: 13px;",
                                  div(class = "energy-icon-circle", 
                                      style = "background: linear-gradient(135deg, #226D68, #226D68); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
                                      icon("industry", style = "font-size: 12px; color: white;")
                                  ),
-                                 div(
-                                   "Production de départ 2025 : ", 
-                                   tags$strong("538 TWh", style = "color: #f59e0b;")
+                                 div("Production de départ 2025 : ", 
+                                     tags$strong("538 TWh", style = "color: #f59e0b;")
                                  )
                                ),
+                               
+                               # Consommation actuelle
                                tags$li(
                                  style = "margin-bottom: 10px; display: flex; align-items: flex-start; font-size: 13px;",
                                  div(class = "energy-icon-circle", 
                                      style = "background: linear-gradient(135deg, #6c757d, #495057); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
                                      icon("home", style = "font-size: 12px; color: white;")
                                  ),
-                                 div(
-                                   "Consommation actuelle : ", 
-                                   tags$strong("442 TWh", style = "color: #f59e0b;")
+                                 div("Consommation actuelle : ", 
+                                     tags$strong("442 TWh", style = "color: #f59e0b;")
                                  )
                                ),
+                               
+                               # Points rouges DC
                                tags$li(
-                                 style = "display: flex; align-items: flex-start; font-size: 13px;",
+                                 style = "margin-bottom: 15px; display: flex; align-items: flex-start; font-size: 13px;",
                                  div(class = "energy-icon-circle", 
                                      style = "background: linear-gradient(135deg, #D46F4D, #D46F4D); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
                                      icon("diamond", style = "font-size: 12px; color: white;")
                                  ),
-                                 div(
-                                   "Points rouge : paliers DC (2025, 2026, 2028, 2035)"
-                                 )
+                                 div("Points rouge : paliers DC (2025, 2026, 2028, 2035)")
                                )
                              )
+                         ),
+                         
+                         # Facteur de charge bien placé
+                         div(style = "margin-top: 20px; text-align: center;",
+                             span(icon("cogs"), style = "margin-right: 6px; color: #8b5cf6;"),
+                             span(textOutput("facteur_charge_affiche"), 
+                                  style = "font-weight: 600; color: #8b5cf6;")
                          )
                        )
                    )

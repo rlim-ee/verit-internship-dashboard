@@ -994,12 +994,16 @@ server <- function(input, output, session) {
   # Calcul de la consommation totale aux paliers
   consommation_totale <- reactive({
     nb_dc <- input$nb_dc
+    facteur <- input$facteur_charge / 100  # convertir %
     
-    # Consommation totale = actuelle + (DC * nb_dc) pour chaque palier
-    dc_data$Conso_Totale <- consommation_actuelle + (dc_data$Conso * nb_dc)
-    
+    dc_data$Conso_Totale <- consommation_actuelle + (dc_data$Conso * nb_dc * facteur)
     return(dc_data)
   })
+  
+  output$facteur_charge_affiche <- renderText({
+    paste("⚙️ Facteur de charge appliqué :", input$facteur_charge, "%")
+  })
+  
   
   ### tendances----
   # Dataframe de consommation électrique 2000-2024
@@ -1297,16 +1301,20 @@ server <- function(input, output, session) {
   # Informations réactives pour la carte de paramètres
   output$info_conso_dc <- renderText({
     nb_dc <- input$nb_dc
-    conso_dc_2025 <- dc_data$Conso[1] * nb_dc
-    paste("Consommation DC en 2025:", round(conso_dc_2025, 3), "TWh")
+    facteur <- input$facteur_charge / 100
+    conso_dc_2025 <- dc_data$Conso[1] * nb_dc * facteur
+    paste("Consommation DC en 2025 :", round(conso_dc_2025, 3), "TWh")
   })
+  
   
   output$info_conso_totale <- renderText({
     nb_dc <- input$nb_dc
-    conso_dc_2035 <- dc_data$Conso[4] * nb_dc
+    facteur <- input$facteur_charge / 100
+    conso_dc_2035 <- dc_data$Conso[4] * nb_dc * facteur
     conso_totale_2035 <- consommation_actuelle + conso_dc_2035
-    paste("Consommation actuelle (2025) + consommation DC en 2035:", round(conso_totale_2035, 0), "TWh")
+    paste("Consommation actuelle (2025) + consommation DC en 2035 :", round(conso_totale_2035, 0), "TWh")
   })
+  
   
   ##### Value boxes----
   
@@ -1364,9 +1372,11 @@ server <- function(input, output, session) {
   # Calcul des équivalents
   calculate_equivalent <- function(source) {
     nb_dc <- input$nb_dc %||% 1
-    conso <- dc_data$Conso[dc_data$Annee == 2035] * nb_dc
+    facteur <- input$facteur_charge / 100
+    conso <- dc_data$Conso[dc_data$Annee == 2035] * nb_dc * facteur
     round(conso / capacities[[source]])
   }
+  
   
   # Outputs pour les valeurs
   output$nuke_value <- renderText({
