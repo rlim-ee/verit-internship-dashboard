@@ -3,10 +3,13 @@ ui <- bs4DashPage(
   title = "Dashboard",
   fullscreen = TRUE,
   
-  header = bs4DashNavbar(title = "Dashboard"),
+  header = bs4DashNavbar(
+    title = span("Tableau de bord", style = "font-weight: bold; color: #31708f;")
+  ),
   
   ## Sidebar ----
   sidebar = bs4DashSidebar(
+    title = "Menu",
     bs4SidebarMenu(
       id = "tabs",
       bs4SidebarMenuItem("Accueil", tabName = "home", icon = icon("home")),
