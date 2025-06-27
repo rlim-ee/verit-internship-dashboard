@@ -830,7 +830,7 @@ ui <- bs4DashPage(
             style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
             
             h3(icon("bolt"), "Consommation totale", style = "color: #31708f; margin-bottom: 15px;"),
-            leafletOutput("map4", height = "530px"),
+            leafletOutput("map_ara_totale", height = "530px"),
             p(
               "Carte représentant la consommation énergétique totale par EPCI",
               style = "margin-top: 10px; font-size: 0.9em; color: #555;"
@@ -845,7 +845,7 @@ ui <- bs4DashPage(
               
               h3(icon("user"), "Consommation par habitant", style = "color: #31708f; margin-bottom: 15px;"),
               
-            leafletOutput("map5", height = "530px"),
+            leafletOutput("map_ara_hab", height = "530px"),
             p(
               "Carte représentant la consommation énergétique ramenée à la population.",
               style = "margin-top: 10px; font-size: 0.9em; color: #555;"

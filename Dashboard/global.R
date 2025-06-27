@@ -1,5 +1,5 @@
 # INIT----
-required_packages <- c("rsconnect","shiny", "sf", "readr","ggtext", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "tmap", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
+required_packages <- c("rsconnect","shiny", "sf", "readr","ggtext", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "fresh", "scatterpie", "leaflet", "leaflet.minicharts", "tidyr", "bs4Dash", "shinyBS", "shinyWidgets")
 missing <- required_packages[!required_packages %in% installed.packages()]
 if(length(missing)) install.packages(missing)
 lapply(required_packages, library, character.only = TRUE)
@@ -13,7 +13,6 @@ lapply(required_packages, library, character.only = TRUE)
   library(sf)
   library(ggplot2)
   library(dplyr)
-  library(tmap)
   library(readr)
   library(fresh)
   library(scatterpie)
@@ -31,9 +30,10 @@ lapply(required_packages, library, character.only = TRUE)
 }
 
 
+
 dc_europe <- readRDS(here("dashboard", "data", "dc_europe.rds"))
 europe_map <- readRDS(here("dashboard", "data", "europe_map.rds"))
-regions <- readRDS(here("dashboard", "data", "region_energie.rds"))
+regions <- readRDS(here("dashboard", "data", "regions_simplified.rds"))
 data_prod <- readRDS(here("dashboard", "data", "conso_evo.rds"))
 data_ara <- readRDS(here("dashboard", "data", "data_ara_epci.rds"))
 eol_aura <- readRDS(here("dashboard", "data", "eol_aura.rds"))

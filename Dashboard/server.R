@@ -40,6 +40,55 @@ server <- function(input, output, session) {
     updateTabItems(session, inputId = "tabs", selected = "home")
   })
   
+  
+  # 
+  # Préparation réactive des données----
+  # 
+  
+  # DC en Europe (nombre et ratio par million d'hab)
+  europe_dc_data <- reactive({
+    dc_data <- dc_europe %>%
+      mutate(dc_per_million = round(nb_dc / (pop / 1e6), 1))
+    
+    europe_map %>%
+      st_simplify(dTolerance = 1000, preserveTopology = TRUE) %>%
+      left_join(dc_data, by = "name") %>%
+      st_transform(crs = 4326) %>%
+      mutate(
+        centroid = st_centroid(geometry),
+        lon = st_coordinates(centroid)[,1],
+        lat = st_coordinates(centroid)[,2],
+        radius = sqrt(nb_dc) * 15000
+      )
+  })
+  
+  
+  europe_dc_pal <- reactive({
+    colorQuantile("YlOrRd", domain = europe_dc_data()$dc_per_million, n = 5, na.color = "#cccccc")
+  })
+  
+  # Données régionales de production/consommation (France)
+  regions_data <- reactive({
+    reg <- st_simplify(st_transform(regions, 4326), dTolerance = 1000, preserveTopology = TRUE)
+    centroids <- st_centroid(reg)
+    centroids$X <- st_coordinates(centroids)[,1]
+    centroids$Y <- st_coordinates(centroids)[,2]
+    list(polygons = reg, centroids = centroids)
+  })
+  
+  
+  # Données Auvergne-Rhône-Alpes (EPCI)
+  data_ara_data <- reactive({
+    data_ara_wgs84 <- st_transform(data_ara, 4326)
+    data_ara_wgs84 <- data_ara_wgs84 %>% mutate(conso_per_pop = round(res / pop, 1))
+    villes <- data.frame(
+      nom = c("Lyon", "Grenoble", "Clermont-Ferrand"),
+      lon = c(4.8357, 5.7245, 3.0822),
+      lat = c(45.7640, 45.1885, 45.7772)
+    )
+    list(epci = data_ara_wgs84, villes = villes)
+  })  
+  
  
   
   ## 1.1 Data centres en Europe----
@@ -47,24 +96,9 @@ server <- function(input, output, session) {
   ### Map1 - Carte de répartition----
   
   output$map1 <- renderLeaflet({
+    europe_data <- europe_dc_data()
+    pal <- europe_dc_pal()
     
-    # 1. Calcul indicateur
-    dc_data <- dc_europe %>%
-      mutate(
-        dc_per_million = round(nb_dc / (pop / 1e6), 1)
-      )
-    
-    # 2. Jointure
-    europe_data <- europe_map %>%
-      left_join(dc_data, by = "name")
-    
-    # 3. Reprojection en WGS84
-    europe_data <- st_transform(europe_data, crs = 4326)
-    
-    # 4. Palette
-    pal <- colorQuantile("YlOrRd", domain = europe_data$dc_per_million, n = 5, na.color = "#cccccc")
-    
-    # 5. Popups
     popup_txt <- paste0(
       "<strong>Pays :</strong> ", europe_data$name, "<br/>",
       "<strong>Nombre de DC :</strong> ", format(europe_data$nb_dc, big.mark = " "), "<br/>",
@@ -72,16 +106,6 @@ server <- function(input, output, session) {
       "<strong>DC / million hab. :</strong> ", europe_data$dc_per_million
     )
     
-    # 6. Extraire centroïdes
-    centroids <- st_centroid(europe_data)
-    coords <- st_coordinates(centroids)
-    europe_data$lon <- coords[, 1]
-    europe_data$lat <- coords[, 2]
-    
-    # 7. Calcul rayon cercles (racine carrée atténue la taille)
-    radius <- sqrt(europe_data$nb_dc) * 15000  # Ajuster la taille selon besoin
-    
-    # 8. Centrer la carte sur lat=54, lng=15, zoom=4 (à ajuster)
     leaflet(europe_data) %>%
       addProviderTiles(providers$CartoDB.Positron) %>%
       setView(lng = 15, lat = 54, zoom = 3) %>%
@@ -91,33 +115,15 @@ server <- function(input, output, session) {
         color = "white",
         weight = 1,
         label = lapply(popup_txt, HTML),
-        highlightOptions = highlightOptions(
-          weight = 2,
-          color = "#444",
-          fillOpacity = 0.9,
-          bringToFront = TRUE
-        )
+        highlightOptions = highlightOptions(weight = 2, color = "#444", fillOpacity = 0.9, bringToFront = TRUE)
       ) %>%
       addCircles(
-        lng = ~lon,
-        lat = ~lat,
-        radius = radius,
-        color = "darkblue",
-        stroke = TRUE,
-        weight = 1,
-        fillOpacity = 0.5,
+        lng = ~lon, lat = ~lat, radius = ~radius,
+        color = "darkblue", stroke = TRUE, weight = 1, fillOpacity = 0.5,
         label = ~paste("Nombre de DC :", nb_dc)
       ) %>%
-      addLegend(
-        pal = pal,
-        values = ~dc_per_million,
-        title = "DC / million hab.",
-        position = "bottomright"
-      )
+      addLegend(pal = pal, values = ~dc_per_million, title = "DC / million hab.", position = "bottomright")
   })
-  
-  
-  
   
   
   ### BarPlot1 - graphique de répartition en barres----
@@ -368,108 +374,42 @@ server <- function(input, output, session) {
   
   ## 2.1 Énergie en France----
   
-  ### Map3 - Carte Prodction d'énergie----
-  output$map3 <- renderTmap({
+  ### Map3 - Carte Consommation d'énergie----
+  output$map_conso <- renderLeaflet({
+    data <- regions_data()
+    pal <- colorNumeric("Blues", domain = data$centroids$CONSO_TWH)
+    rayon <- sqrt(data$centroids$CONSO_TWH) * 9000
     
-    # Reprojection en WGS 84 si ce n'est pas déjà fait
-    regions_wgs84 <- st_transform(regions, 4326)
-    
-    # Calcul des centroïdes avec coordonnées X/Y
-    centroids <- st_centroid(regions_wgs84)
-    centroids$X <- st_coordinates(centroids)[,1]
-    centroids$Y <- st_coordinates(centroids)[,2]
-    
-    # Mode interactif (pour tmap dans Shiny)
-    tmap_mode("view")
-    
-    tm_basemap("CartoDB.Positron") +
-      tm_shape(regions_wgs84) +
-      tm_polygons(
-        fill = "white",
-        alpha = 0.7,
-        border.col = "black",
-        border.lwd = 1,
-        popup.vars = c("Région" = "NOM", "Consommation totale (TWh)" = "CONSO_TWH")
-      ) +
-      tm_shape(centroids) +
-      tm_symbols(size = "CONSO_TWH", 
-                 scale = 3, 
-                 col = "#0B162C", 
-                 alpha = 0.7, 
-                 border.col = "black",
-                 popup.vars = c("Région" = "NOM", "Consommation totale (TWh)" = "CONSO_TWH")
-      ) +
-      tm_view(set.view = c(2.2137, 46.7276, 5),
-              view.legend.position = c("right", "bottom"),
-              basemaps = c("CartoDB.Positron", "OpenStreetMap")) +
-      tm_layout(title = "Consommation totale brute par région",
-                title.size = 1.2,
-                title.fontface = "bold",
-                title.color = "gray20",
-                title.fontfamily = "sans",
-                title.bg.color = "white",
-                title.bg.alpha = 0.7,
-                frame = FALSE,
-                legend.outside = TRUE) +
-      tm_compass(position = c("right", "top"), size = 0.1) +
-      tm_scale_bar(position = c("left", "bottom")) +
-      tm_credits("Auteur : Robert Lim\nSource : RTE France, 2025",
-                 position = c("right", "bottom"),
-                 size = 0.7
-      )
+    leaflet() %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
+      addPolygons(data = data$polygons,
+                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
+                  popup = ~paste0("<b>", NOM, "</b><br>Consommation : <b>", CONSO_TWH, " TWh</b>")) %>%
+      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
+                 fillColor = "#0B162C", color = "black", weight = 1, fillOpacity = 0.7,
+                 popup = ~paste0("<b>", NOM, "</b><br>Conso : <b>", CONSO_TWH, " TWh</b>")) %>%
+      addLegend("bottomleft", pal = pal, values = data$centroids$CONSO_TWH, title = "Consommation (TWh)")
   })
   
   
   
   ### Map3bis - Production totale----
-  output$map3bis <- renderLeaflet({
-    regions_wgs84 <- st_transform(regions, 4326)
-    centroids <- st_centroid(regions_wgs84)
-    centroids$X <- st_coordinates(centroids)[,1]
-    centroids$Y <- st_coordinates(centroids)[,2]
-    
-    # Préparer les popups
-    centroids$popup <- paste0(
-      "<b>", centroids$NOM, "</b><br>",
-      "Production totale : <b>", centroids$PR_TOT_TWH, " TWh</b>"
-    )
-    
-    # Rayon proportionnel
-    rayon <- sqrt(centroids$PR_TOT_TWH) * 9000
+  output$map_prod <- renderLeaflet({
+    data <- regions_data()
+    pal <- colorNumeric("Greens", domain = data$centroids$PR_TOT_TWH)
+    rayon <- sqrt(data$centroids$PR_TOT_TWH) * 9000
     
     leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
-      
-      # Polygones
-      addPolygons(data = regions_wgs84,
-                  fillColor = "white",
-                  fillOpacity = 0.7,
-                  color = "black",
-                  weight = 1,
-                  popup = ~paste0("<b>", NOM, "</b><br>Production totale : <b>", PR_TOT_TWH, " TWh</b>")) %>%
-      
-      # Cercles proportionnels
-      addCircles(data = centroids,
-                 lng = ~X, lat = ~Y,
-                 radius = rayon,
-                 fillColor = "#1A5D1A",
-                 color = "black",
-                 weight = 1,
-                 fillOpacity = 0.7,
-                 popup = ~popup) %>%
-      
-      # Boussole et échelle
-      addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
-      
-      # Légende texte
-      addControl(
-        html = paste0("<div style='background:white;padding:8px;border-radius:6px;opacity:0.9;'>
-                      <b style='font-size:15px;color:#333;'>Production totale d’énergie par région</b><br>
-                      <small style='color:gray;'>Auteur : Robert Lim<br>Source : RTE France, 2025</small>
-                    </div>"),
-        position = "bottomright"
-      )
+      addPolygons(data = data$polygons,
+                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
+                  popup = ~paste0("<b>", NOM, "</b><br>Production : <b>", PR_TOT_TWH, " TWh</b>")) %>%
+      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
+                 fillColor = "#1A5D1A", color = "black", weight = 1, fillOpacity = 0.7,
+                 popup = ~paste0("<b>", NOM, "</b><br>Production : <b>", PR_TOT_TWH, " TWh</b>")) %>%
+      addLegend("bottomleft", pal = pal, values = data$centroids$PR_TOT_TWH, title = "Production (TWh)")
   })
   
   
@@ -477,71 +417,26 @@ server <- function(input, output, session) {
   
   output$map_totale <- renderLeaflet({
     req(input$choix_map)
+    data <- regions_data()
     
-    regions_wgs84 <- st_transform(regions, 4326)
-    centroids <- st_centroid(regions_wgs84)
-    centroids$X <- st_coordinates(centroids)[,1]
-    centroids$Y <- st_coordinates(centroids)[,2]
+    var <- if (input$choix_map == "conso") "CONSO_TWH" else "PR_TOT_TWH"
+    couleur <- if (input$choix_map == "conso") "#6A645A" else "#E3CD8B"
+    titre <- if (input$choix_map == "conso") "Consommation (TWh)" else "Production (TWh)"
+    rayon <- sqrt(data$centroids[[var]]) * 9000
     
-    if (input$choix_map == "conso") {
-      var <- "CONSO_TWH"
-      titre <- "Consommation totale brute par région"
-      couleur <- "#6A645A"
-      popup_label <- "Consommation totale (TWh)"
-    } else {
-      var <- "PR_TOT_TWH"
-      titre <- "Production totale d’énergie par région"
-      couleur <- "#E3CD8B"
-      popup_label <- "Production totale (TWh)"
-    }
-    
-    centroids$popup <- paste0(
-      "<b>", centroids$NOM, "</b><br>",
-      popup_label, " : <b>", centroids[[var]], " TWh</b>"
-    )
-    
-    rayon <- sqrt(centroids[[var]]) * 9000
+    pal <- colorNumeric(c("white", couleur), domain = data$centroids[[var]])
     
     leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
-      
-      addPolygons(data = regions_wgs84,
-                  fillColor = "white",
-                  fillOpacity = 0.7,
-                  color = "black",
-                  weight = 1,
-                  popup = ~paste0("<b>", NOM, "</b><br>", popup_label, " : <b>", .[[var]], " TWh</b>")) %>%
-      
-      addCircles(data = centroids,
-                 lng = ~X, lat = ~Y,
-                 radius = rayon,
-                 fillColor = couleur,
-                 color = "black",
-                 weight = 1,
-                 fillOpacity = 0.7,
-                 popup = ~popup) %>%
-      
-      addLegend(position = "bottomleft",
-                title = popup_label,
-                pal = colorNumeric(palette = c("white", couleur), domain = centroids[[var]]),
-                values = centroids[[var]],
-                opacity = 1) %>%
-      
-      addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
-      
-      addControl(
-        html = paste0("<div style='background:white;padding:8px;border-radius:6px;opacity:0.9;'>
-                      <b style='font-size:15px;color:#333;'>", titre, "</b><br>
-                      <small style='color:gray;'>Auteur : Robert Lim<br>Source : RTE France, 2025</small>
-                    </div>"),
-        position = "bottomright"
-      )
+      addPolygons(data = data$polygons,
+                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
+                  popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
+      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
+                 fillColor = couleur, color = "black", weight = 1, fillOpacity = 0.7,
+                 popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
+      addLegend("bottomleft", pal = pal, values = data$centroids[[var]], title = titre)
   })
-  
-  
-  
-  
   
   
   ### PieChart1 - Production d'énergie par filière----
@@ -1003,172 +898,53 @@ server <- function(input, output, session) {
   
   ## 2.2 Énergie en Auvergne-Rhone-Alpes----
   
-  output$map4 <- renderLeaflet({
-    # Reprojection en WGS 84
-    data_ara_wgs84 <- st_transform(data_ara, 4326)
+  output$map_ara_totale <- renderLeaflet({
+    data <- data_ara_data()
+    pal <- colorBin("Oranges", domain = data$epci$tot, bins = 6, na.color = "#e0e0e0")
+    labels <- sprintf("<strong>%s</strong><br/>Conso totale : %s MWh/an<br/>Population : %s",
+                      data$epci$NOM_EPCI,
+                      format(data$epci$tot, big.mark = " "),
+                      format(data$epci$pop, big.mark = " ")) %>%
+      lapply(htmltools::HTML)
     
-    # Données des villes principales
-    villes <- data.frame(
-      nom = c("Lyon", "Grenoble", "Clermont-Ferrand"),
-      lon = c(4.8357, 5.7245, 3.0822),
-      lat = c(45.7640, 45.1885, 45.7772)
-    )
-    
-    # Palette de couleurs pour consommation totale
-    pal <- colorBin("Oranges", domain = data_ara_wgs84$tot, bins = 6, na.color = "#e0e0e0")
-    
-    # Etiquettes pour les polygones
-    labels <- sprintf(
-      "<strong>%s</strong><br/>Conso totale : %s MWh/an<br/>Population : %s",
-      data_ara_wgs84$NOM_EPCI,
-      format(data_ara_wgs84$tot, big.mark = " "),
-      format(data_ara_wgs84$pop, big.mark = " ")
-    ) %>% lapply(htmltools::HTML)
-    
-    # Carte leaflet
-    leaflet(data = data_ara_wgs84) %>%
+    leaflet(data = data$epci) %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(lng = 4.8, lat = 45.5, zoom = 7) %>%
-      addPolygons(
-        fillColor = ~pal(tot),
-        weight = 1,
-        opacity = 1,
-        color = "white",
-        dashArray = "3",
-        fillOpacity = 0.8,
-        highlightOptions = highlightOptions(
-          weight = 2,
-          color = "#666",
-          dashArray = "",
-          fillOpacity = 0.9,
-          bringToFront = TRUE
-        ),
-        label = labels
-      ) %>%
-      addLegend(
-        pal = pal,
-        values = ~tot,
-        opacity = 0.7,
-        title = "MWh/an (total)",
-        position = "bottomleft"
-      ) %>%
-      # Points pour les villes
-      addCircleMarkers(
-        data = villes,
-        lng = ~lon,
-        lat = ~lat,
-        radius = 5,
-        color = "black",
-        fillColor = "black",
-        fillOpacity = 0.9,
-        stroke = TRUE,
-        weight = 1
-      ) %>%
-      # Noms des villes
-      addLabelOnlyMarkers(
-        data = villes,
-        lng = ~lon,
-        lat = ~lat,
-        label = ~nom,
-        labelOptions = labelOptions(
-          noHide = TRUE,
-          direction = "top",
-          textOnly = TRUE,
-          style = list(
-            "color" = "gray20",
-            "font-weight" = "bold",
-            "font-size" = "13px"
-          )
-        )
-      )
+      addPolygons(fillColor = ~pal(tot), weight = 1, color = "white", fillOpacity = 0.8,
+                  highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = TRUE),
+                  label = labels) %>%
+      addLegend(pal = pal, values = ~tot, opacity = 0.7, title = "MWh/an (total)", position = "bottomleft") %>%
+      addCircleMarkers(data = data$villes, lng = ~lon, lat = ~lat, radius = 5,
+                       color = "black", fillOpacity = 0.9) %>%
+      addLabelOnlyMarkers(data = data$villes, lng = ~lon, lat = ~lat, label = ~nom,
+                          labelOptions = labelOptions(noHide = TRUE, direction = "top", textOnly = TRUE,
+                                                      style = list("color" = "gray20", "font-weight" = "bold", "font-size" = "13px")))
   })
   
   
-  output$map5 <- renderLeaflet({
-    # Reprojection en WGS 84
-    data_ara_wgs84 <- st_transform(data_ara, 4326)
+  output$map_ara_hab <- renderLeaflet({
+    data <- data_ara_data()
+    pal <- colorBin("Purples", domain = data$epci$conso_per_pop, bins = 5, na.color = "#e0e0e0")
+    labels <- sprintf("<strong>%s</strong><br/>Conso/hab : %s MWh/an<br/>Population : %s",
+                      data$epci$NOM_EPCI,
+                      data$epci$conso_per_pop,
+                      format(data$epci$pop, big.mark = " ")) %>%
+      lapply(htmltools::HTML)
     
-    # Calcul de la conso par habitant
-    data_ara_wgs84 <- data_ara_wgs84 %>%
-      mutate(
-        conso_per_pop = round(res / pop, 1)
-      )
-    
-    # Coordonnées des villes principales
-    villes <- data.frame(
-      nom = c("Lyon", "Grenoble", "Clermont-Ferrand"),
-      lon = c(4.8357, 5.7245, 3.0822),
-      lat = c(45.7640, 45.1885, 45.7772)
-    )
-    
-    # Créer une palette de couleurs
-    pal <- colorBin("Purples", domain = data_ara_wgs84$conso_per_pop, bins = 5, na.color = "#e0e0e0")
-    
-    # Etiquettes (popup ou labels)
-    labels <- sprintf(
-      "<strong>%s</strong><br/>Conso/hab : %s MWh/an<br/>Population : %s",
-      data_ara_wgs84$NOM_EPCI,
-      data_ara_wgs84$conso_per_pop,
-      format(data_ara_wgs84$pop, big.mark = " ")
-    ) %>% lapply(htmltools::HTML)
-    
-    # Création de la carte
-    leaflet(data = data_ara_wgs84) %>%
+    leaflet(data = data$epci) %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(lng = 4.8, lat = 45.5, zoom = 7) %>%
-      addPolygons(
-        fillColor = ~pal(conso_per_pop),
-        weight = 1,
-        opacity = 1,
-        color = "white",
-        dashArray = "3",
-        fillOpacity = 0.8,
-        highlightOptions = highlightOptions(
-          weight = 2,
-          color = "#666",
-          dashArray = "",
-          fillOpacity = 0.9,
-          bringToFront = TRUE
-        ),
-        label = labels
-      ) %>%
-      addLegend(
-        pal = pal,
-        values = ~conso_per_pop,
-        opacity = 0.7,
-        title = "MWh/an par habitant",
-        position = "bottomleft"
-      ) %>%
-      # Villes : points
-      addCircleMarkers(
-        data = villes,
-        lng = ~lon,
-        lat = ~lat,
-        radius = 5,
-        color = "black",
-        fillColor = "black",
-        fillOpacity = 0.9,
-        stroke = TRUE,
-        weight = 1
-      ) %>%
-      # Villes : noms
-      addLabelOnlyMarkers(
-        data = villes,
-        lng = ~lon,
-        lat = ~lat,
-        label = ~nom,
-        labelOptions = labelOptions(
-          noHide = TRUE,
-          direction = "top",
-          textOnly = TRUE,
-          style = list(
-            "color" = "gray20",
-            "font-weight" = "bold",
-            "font-size" = "13px"
-          )
-        )
-      )
+      addPolygons(fillColor = ~pal(conso_per_pop), weight = 1, color = "white", fillOpacity = 0.8,
+                  highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = TRUE),
+                  label = labels) %>%
+      addLegend(pal = pal, values = ~conso_per_pop, opacity = 0.7, title = "MWh/an par habitant", position = "bottomleft") %>%
+      addCircleMarkers(data = data$villes, lng = ~lon, lat = ~lat, radius = 5,
+                       color = "black", fillOpacity = 0.9) %>%
+      addLabelOnlyMarkers(data = data$villes, lng = ~lon, lat = ~lat, label = ~nom,
+                          labelOptions = labelOptions(noHide = TRUE, direction = "top", textOnly = TRUE,
+                                                      style = list("color" = "gray20", "font-weight" = "bold", "font-size" = "13px")))
   })
+
   
   
   
