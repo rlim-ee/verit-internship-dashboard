@@ -44,6 +44,8 @@ sol_aura <- readRDS(here("dashboard", "data", "sol_aura.rds"))
 nuc_aura <- readRDS(here("dashboard", "data", "nuc_aura.rds"))
 hydro_aura <- readRDS(here("dashboard", "data", "hydro_aura.rds"))
 
+
+
 data_DC_FLAPD <- st_read(here(
   "dashboard",
   "data", "data_DC_FLAPD", "DC_FLAP_D.shp"))

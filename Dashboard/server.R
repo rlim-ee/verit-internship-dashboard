@@ -255,7 +255,7 @@ server <- function(input, output, session) {
   selected_ville <- reactiveVal("All")
   
   # Réactif : filtrage selon la sélection
-  data_filtrée <- reactive({
+  data_filtree <- reactive({
     if (selected_ville() == "All") {
       data_DC_FLAPD
     } else {
@@ -960,7 +960,76 @@ server <- function(input, output, session) {
                           labelOptions = labelOptions(noHide = TRUE, direction = "top", textOnly = TRUE,
                                                       style = list("color" = "gray20", "font-weight" = "bold", "font-size" = "13px")))
   })
-
+  
+  hydro_aura <- st_transform(hydro_aura, 4326)
+  nuc_aura <- st_transform(nuc_aura, 4326)
+  
+  hydro <- hydro_aura %>%
+    mutate(
+      type = "Hydroélectrique",
+      puissance_ = as.numeric(puissance_)
+    )
+  
+  nuc <- nuc_aura %>%
+    mutate(
+      type = "Nucléaire",
+      puissance_ = as.numeric(puissance_)
+    )
+  
+  # 4. Fusionner les deux
+  prod_centrales <- bind_rows(hydro, nuc) %>%
+    st_cast("POINT")
+  
+  data_filtrée <- reactive({
+    switch(input$filtre_type,
+           "Hydroélectrique" = prod_centrales %>% filter(type == "Hydroélectrique"),
+           "Nucléaire" = prod_centrales %>% filter(type == "Nucléaire"),
+           "Les deux" = prod_centrales)
+  })
+  
+  output$map_centrales <- renderLeaflet({
+    pal <- colorFactor(
+      palette = c("Hydroélectrique" = "#3182bd", "Nucléaire" = "#fdbb0b"),
+      domain = prod_centrales$type
+    )
+    
+    leaflet(prod_centrales) %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      setView(lng = 4.85, lat = 45.75, zoom = 7) %>%
+      addCircleMarkers(
+        radius = ~sqrt(puissance_)*1.5,
+        stroke = TRUE,
+        color = "black",
+        weight = 1,
+        fillColor = ~pal(type),
+        fillOpacity = 0.35,
+        label = ~paste0(
+          "Centrale : ", centrale, ", ",
+          "Puissance : ", formatC(puissance_, format = "f", digits = 1), " MW"
+        ),
+        labelOptions = labelOptions(
+          html = TRUE,
+          style = list(
+            "font-weight" = "normal",
+            "padding" = "4px 8px",
+            "background-color" = "rgba(255,255,255,0.8)",
+            "border-radius" = "4px",
+            "box-shadow" = "0 1px 3px rgba(0,0,0,0.3)"
+          ),
+          direction = "auto",
+          textsize = "13px"
+        )
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        pal = pal,
+        values = prod_centrales$type,
+        title = "Type d'installation",
+        opacity = 0.8
+      )
+  })
+  
+  
   
   
   ## 3.1. Simulation 1----

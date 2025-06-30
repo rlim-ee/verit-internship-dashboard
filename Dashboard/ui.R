@@ -878,6 +878,18 @@ ui <- bs4DashPage(
         )
       ),
       
+      # Titre principal avec style
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+            h2(icon("mountain"), "Auvergne-Rhône-Alpes", 
+               style = "color: #31708f; font-weight: bold; margin: 0;")
+          )
+        )
+      ),
+      
       fluidRow(
         column(
           width = 6,
@@ -908,11 +920,33 @@ ui <- bs4DashPage(
           )
         )
       )
+     ),
+     
+     ### Installation énergétique dans la région----
+     
+     fluidRow(
+       column(
+         width = 12,
+         div(
+           style = "background: #f9f9f9; padding: 20px; border-radius: 8px;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+           
+           h3(icon("industry"), "Centrales hydroélectriques et nucléaires",
+              style = "color: #31708f; margin-bottom: 15px;"),
+           
+           leafletOutput("map_centrales", height = "600px"),
+           
+           p(
+             "Carte représentant les centrales nucléaires et hydroélectriques avec des cercles proportionnels à leur puissance.",
+             style = "margin-top: 10px; font-size: 0.9em; color: #555;"
+           )
+         )
+       )
      )
+     
     ),
     
-    ### Installation énergétique dans la région----
-    
+
     ### 3.1 Sim1----
     tabItem(
       tabName = "sim1",
