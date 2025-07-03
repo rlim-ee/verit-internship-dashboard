@@ -4,7 +4,7 @@ ui <- bs4DashPage(
   fullscreen = TRUE,
   
   header = bs4DashNavbar(
-    title = span("Tableau de bord", style = "font-weight: bold; color: #31708f;")
+    title = tags$span("Tableau de bord", style = "font-weight: bold; color: #31708f;")
   ),
   
   ## Sidebar ----
@@ -13,6 +13,11 @@ ui <- bs4DashPage(
     bs4SidebarMenu(
       id = "tabs",
       bs4SidebarMenuItem("Accueil", tabName = "home", icon = icon("home")),
+      
+      bs4SidebarMenuItem("Extr & Prod", icon = icon("spinner"),
+                         bs4SidebarMenuSubItem("Terres rares", tabName = "extraction"),
+                         bs4SidebarMenuSubItem("Semi-conducteur", tabName = "semi_conductors")
+      ),
       
       bs4SidebarMenuItem("DC & Europe", icon = icon("earth-europe"),
                          bs4SidebarMenuSubItem("DC en Europe", tabName = "dc_europe_map"),
@@ -41,312 +46,146 @@ ui <- bs4DashPage(
       
       # CSS personnalisé
       tags$style(HTML("
-    body, h1, h2, h3, h4, h5, h6, .small-box, .nav-link, .brand-text {
-      font-family: 'Poppins', sans-serif !important;
-    }
+    body, h1, h2, h3, h4, h5, h6, .nav-link, .brand-text {
+    font-family: 'Poppins', sans-serif !important;
+  }
 
-    .main-header .navbar .navbar-brand .brand-text {
-      font-weight: bold !important;
-      font-size: 22px !important;
-      color: #f5f6f7 !important;
-    }
+  .main-header .navbar .navbar-brand .brand-text {
+    font-weight: bold !important;
+    font-size: 22px !important;
+    color: #f5f6f7 !important;
+  }
 
-    .main-sidebar {
-      background-color: #31708f !important;
-      color: white !important;
-    }
+  .main-sidebar,
+  .sidebar-dark-primary {
+    background-color: #31708f !important;
+    color: white !important;
+  }
 
-    .sidebar-dark-primary {
-      background-color: #31708f !important;
-      color: white !important;
-    }
+  .main-sidebar .nav-link {
+    color: white !important;
+  }
 
-    .main-sidebar .nav-link {
-      color: white !important;
-    }
+  .main-sidebar .nav-link.active,
+  .main-sidebar .nav-link:hover {
+    background-color: #265a6a !important;
+    color: white !important;
+  }
 
-    .main-sidebar .nav-link.active {
-      background-color: #265a6a !important;
-      color: white !important;
-    }
+  .main-sidebar .nav-link .fa {
+    color: white !important;
+  }
 
-    .main-sidebar .nav-link:hover {
-      background-color: #265a6a !important;
-      color: white !important;
-    }
+  .content-wrapper,
+  .main-footer,
+  .main-header {
+    background-color: white !important;
+  }
 
-    .main-sidebar .nav-link .fa {
-      color: white !important;
-    }
+  .card-header {
+    background-color: #0B162C !important;
+    color: #5FC2BA !important;
+  }
 
-    .content-wrapper,
-    .main-footer,
-    .main-header {
-      background-color: white !important;
-    }
+  .card-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: white !important;
+  }
 
-    .card-header {
-      background-color: #0B162C !important;
-      color: #5FC2BA !important;
-    }
+  .section-header {
+    background-color: #31708f !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 1.4rem !important;
+    padding: 12px 20px !important;
+    margin: 30px 0 20px 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    border-left: 5px solid #0B162C !important;
+    letter-spacing: 0.5px !important;
+  }
 
-    .card-title {
-      font-size: 20px !important;
-      font-weight: bold !important;
-      color: white !important;
-    }
+  .modern-energy-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 5px solid;
+    padding: 20px;
+    margin-bottom: 20px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-    .section-header {
-      background-color: #31708f !important;
-      color: #ffffff !important;
-      font-weight: 600 !important;
-      font-size: 1.4rem !important;
-      padding: 12px 20px !important;
-      margin: 30px 0 20px 0 !important;
-      border-radius: 8px !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
-      border-left: 5px solid #0B162C !important;
-      letter-spacing: 0.5px !important;
-    }
+  .modern-energy-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
 
-    .value-box-custom-teal {
-      background: linear-gradient(135deg, #5FC2BA, #4FADAA) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(95, 194, 186, 0.3) !important;
-    }
+  .energy-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
 
-    .value-box-custom-navy {
-      background: linear-gradient(135deg, #0B162C, #1A2B4C) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(11, 22, 44, 0.3) !important;
-    }
+  .energy-icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+  }
 
-    .value-box-custom-orange {
-      background: linear-gradient(135deg, #FF6B35, #F7931E) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
-    }
+  .energy-value-large {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
 
-    .value-box-custom-purple {
-      background: linear-gradient(135deg, #6C5CE7, #A29BFE) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3) !important;
-    }
+  .energy-subtitle-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+  }
 
-    .value-box-custom-green {
-      background: linear-gradient(135deg, #00B894, #00CEC9) !important;
-      color: white !important;
-      border-radius: 15px !important;
-      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3) !important;
-    }
+  .energy-capacity-info {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-    .small-box h3, .small-box h4 {
-      font-weight: bold !important;
-      font-size: 1.8rem !important;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-    }
-
-    .small-box p {
-      font-weight: 600 !important;
-      font-size: 1.1rem !important;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-    }
-
-    .small-box .icon {
-      font-size: 4rem !important;
-      opacity: 0.8 !important;
-    }
-
-    .small-box a {
-      color: white !important;
-      text-decoration: none !important;
-      font-weight: bold !important;
-      transition: all 0.3s ease !important;
-    }
-
-    .small-box a:hover {
-      color: #f8f9fa !important;
-      text-decoration: underline !important;
-      transform: scale(1.05) !important;
-    }
-
-    .small-box {
-      transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    }
-
-    .small-box:hover {
-      transform: translateY(-5px) !important;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    @media (max-width: 768px) {
-      .small-box h3 {
-        font-size: 1.4rem !important;
-      }
-      .small-box p {
-        font-size: 1rem !important;
-      }
-    }
-
-    .modern-energy-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border-left: 5px solid;
-      padding: 20px;
-      margin-bottom: 20px;
-      height: 140px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .modern-energy-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .energy-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 15px;
-    }
-
-    .energy-icon-circle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 20px;
-    }
-
-    .energy-value-large {
-      font-size: 2.2rem;
-      font-weight: 700;
-      margin: 0;
-      line-height: 1;
-    }
-
-    .energy-subtitle-text {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #64748b;
-      margin: 0;
-    }
-
-    .energy-capacity-info {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-top: 4px;
-      text-align: right;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 6px;
-      background-color: #e2e8f0;
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .progress-bar-animated {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 1.2s ease-out;
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { opacity: 0.8; }
-    }
-
-    .section-title {
-      color: #1e293b;
-      font-weight: 600;
-      margin-bottom: 25px;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #3b82f6;
-      display: inline-block;
-    }
-
-    .energy-extra-info {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      flex-grow: 1;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.85em;
-    }
-
-    .info-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .info-label {
-      color: #64748b;
-      font-weight: 500;
-    }
-
-    .info-value {
-      color: #1e293b;
-      font-weight: 600;
-      text-align: right;
-    }
-
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .row {
-      margin-left: -15px;
-      margin-right: -15px;
-    }
-
-    .row:after {
-      content: '';
-      display: table;
-      clear: both;
-    }
+  .section-title {
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3b82f6;
+    display: inline-block;
+  }
   "))
     ),
     
     bs4TabItems(
       
       ### Home Tab ----
+      ### Onglet Accueil ----
       bs4TabItem(
         tabName = "home",
         
-        # Project Description
+        # Carte d'introduction
         bs4Card(
           title = "Contexte",
           solidHeader = TRUE,
@@ -361,23 +200,67 @@ ui <- bs4DashPage(
           )
         ),
         
-        h3("Explorer le dashboard :", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
+        h3("Explorer le dashboard :", class = "section-header"),
         
-        # Section: Répartition des data centers
-        h5("Répartition des data centers", class = "section-header"),
+        ## Section : Extraction et production
+        h5("Extraction et Production", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
+        fluidRow(
+          column(6,
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #4c3921;",
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #4c3921, #4c3921);",
+                             icon("hammer")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_extraction", "Terres rares",
+                                           style = "color: #4c3921; text-decoration: none;"),
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Extraction des terres rares", class = "energy-subtitle-text")
+                     )
+                 )
+          ),
+          column(6,
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #cfd514;",
+                     div(class = "energy-card-header",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #cfd514, #cfd514);",
+                             icon("microchip")
+                         ),
+                         div(style = "text-align: right;",
+                             h3(actionLink("go_semi_conductors", "Semi-conducteurs",
+                                           style = "color: #cfd514; text-decoration: none;"),
+                                class = "energy-value-large"),
+                             p("Cliquer pour voir", class = "energy-capacity-info")
+                         )
+                     ),
+                     div(
+                       p("Production des semi-conducteurs", class = "energy-subtitle-text")
+                     )
+                 )
+          )
+        ),
         
+        ## Section : Répartition des data centers
+        h5("Répartition des data centers", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         fluidRow(
           column(4,
-                 div(class = "modern-energy-card", 
-                     style = "border-left-color: #3b82f6;",  # bleu
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #3b82f6;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #3b82f6, #1e3a8a);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #3b82f6, #3b82f6);",
                              icon("globe-europe")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_dc_europe", "Europe", 
-                                           style = "color: #3b82f6; text-decoration: none;"), 
+                             h3(actionLink("go_dc_europe_map", "Europe",
+                                           style = "color: #3b82f6; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -387,18 +270,17 @@ ui <- bs4DashPage(
                      )
                  )
           ),
-          
           column(4,
-                 div(class = "modern-energy-card", 
-                     style = "border-left-color: #f97316;",  # orange
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #f97316;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #f97316, #c2410c);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #f97316, #f97316);",
                              icon("network-wired")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_flapd", "FLAP-D", 
-                                           style = "color: #f97316; text-decoration: none;"), 
+                             h3(actionLink("go_flapd", "FLAP-D",
+                                           style = "color: #f97316; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -408,18 +290,17 @@ ui <- bs4DashPage(
                      )
                  )
           ),
-          
           column(4,
-                 div(class = "modern-energy-card", 
-                     style = "border-left-color: #10b981;",  # vert
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #10b981;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #10b981, #065f46);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #10b981, #10b981);",
                              icon("server")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_dc_france", "France", 
-                                           style = "color: #10b981; text-decoration: none;"), 
+                             h3(actionLink("go_dc_france", "France",
+                                           style = "color: #10b981; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -431,21 +312,20 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Section: Bilan énergétique
-        h5("Bilan énergétique", class = "section-header"),
-        
+        ## Section : Bilan énergétique
+        h5("Bilan énergétique", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         fluidRow(
           column(6,
-                 div(class = "modern-energy-card", 
-                     style = "border-left-color: #6366f1;",  # violet
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #6366f1;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #6366f1, #4f46e5);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #6366f1, #6366f1);",
                              icon("bolt")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_regions", "France", 
-                                           style = "color: #6366f1; text-decoration: none;"), 
+                             h3(actionLink("go_regions", "France",
+                                           style = "color: #6366f1; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -455,18 +335,17 @@ ui <- bs4DashPage(
                      )
                  )
           ),
-          
           column(6,
-                 div(class = "modern-energy-card", 
-                     style = "border-left-color: #ec4899;",  # rose
+                 div(class = "modern-energy-card",
+                     style = "border-left-color: #ec4899;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #ec4899, #be185d);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #ec4899, #ec4899);",
                              icon("chart-area")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_ara", "Auvergne-Rhône-Alpes", 
-                                           style = "color: #ec4899; text-decoration: none;"), 
+                             h3(actionLink("go_ara", "Auvergne-Rhône-Alpes",
+                                           style = "color: #ec4899; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -478,21 +357,20 @@ ui <- bs4DashPage(
           )
         ),
         
-        h3("Explorer les simulations :", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),        
-
-        
-          fluidRow(
+        ## Section : Simulations
+        h3("Explorer les simulations :", class = "section-header"),
+        fluidRow(
           column(6,
-                 div(class = "modern-energy-card", 
+                 div(class = "modern-energy-card",
                      style = "border-left-color: #14b8a6;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #14b8a6, #0f766e);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #14b8a6, #14b8a6);",
                              icon("chart-line")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_sim1", "Analyse prédictive", 
-                                           style = "color: #14b8a6; text-decoration: none;"), 
+                             h3(actionLink("go_sim1", "Analyse prédictive",
+                                           style = "color: #14b8a6; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -502,18 +380,17 @@ ui <- bs4DashPage(
                      )
                  )
           ),
-          
           column(6,
-                 div(class = "modern-energy-card", 
+                 div(class = "modern-energy-card",
                      style = "border-left-color: #06b6d4;",
                      div(class = "energy-card-header",
-                         div(class = "energy-icon-circle", 
-                             style = "background: linear-gradient(135deg, #06b6d4, #0891b2);",
+                         div(class = "energy-icon-circle",
+                             style = "background: linear-gradient(135deg, #06b6d4, #06b6d4);",
                              icon("cogs")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_sim2", "Analyse comparative", 
-                                           style = "color: #06b6d4; text-decoration: none;"), 
+                             h3(actionLink("go_sim2", "Analyse comparative",
+                                           style = "color: #06b6d4; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
@@ -525,10 +402,170 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Credits
+        # Crédits
         tags$div(
           style = "margin-top: 30px; text-align: right; font-size: 0.9em; color: #888;",
           "Auteur : Zoé Cargnelli & Robert Lim | Source : ICIS, Eurostat, DataCenterMap, RTE France | 2025"
+        )
+      ),
+      
+      ### 1.0 Extraction----
+      
+      bs4TabItem(
+        tabName = "extraction",
+        # Bouton retour avec style
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "margin-bottom: 20px;",
+              actionButton("retour_accueil_extraction", "Retour à l'accueil", 
+                           icon = icon("arrow-left"),
+                           style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+            )
+          )
+        ),
+        
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+              h2(icon("hammer"), "Extraction et échanges des terres rares", 
+                 style = "color: #31708f; font-weight: bold; margin: 0;")
+            )
+          )
+        ),
+        
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+              h3(icon("globe"), "Extraction et échanges de sillicium", style = "color: #31708f; margin-bottom: 15px;"),
+              withSpinner(leafletOutput("map_extraction"), type = 6, color = "#444"),
+              tags$p("Carte interactive montrant l'extraction de terres rares (en tonnes) par pays et les flux commerciaux supérieurs à 1 million de dollars.",
+                     style = "margin-top: 15px; font-size: 16px; color: #555;")
+            )
+          )
+        ),
+        
+        # Diagramme Sankey de la demande en or
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #ffffff; padding: 20px; border-radius: 8px; 
+           box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+              h3(icon("project-diagram"), "Répartition de la demande mondiale en or (2024)", style = "color: #b8860b; margin-bottom: 15px;"),
+              sankeyNetworkOutput("sankey_gold_demand", height = "500px"),
+              tags$p("Visualisation de la chaîne de répartition de la demande en or par secteur d’usage.",
+                     style = "margin-top: 15px; font-size: 16px; color: #555;")
+            )
+          )
+        )
+      ),
+      
+      ### 1.0 Production----
+      
+      bs4TabItem(
+        tabName = "semi_conductors",
+        
+        # Bouton retour
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "margin-bottom: 20px;",
+              actionButton(
+                "retour_accueil_semi_conductors", "Retour à l'accueil",
+                icon = icon("arrow-left"),
+                style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;"
+              )
+            )
+          )
+        ),
+        
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+              h2(icon("microchip"), "Semi-conducteurs", 
+                 style = "color: #31708f; font-weight: bold; margin: 0;")
+            )
+          )
+        ),
+        
+        # Carte en pleine largeur
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px;
+                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+              h3(icon("globe"), "Production mondiale de semi-conducteurs", style = "color: #31708f; margin-bottom: 15px;"),
+              withSpinner(leafletOutput("map_semi_conductors", height = "500px"), type = 6, color = "#444"),
+              tags$p("Répartition mondiale de la production de semi-conducteurs par pays.",
+                     style = "margin-top: 15px; font-size: 16px; color: #555;")
+            )
+          )
+        ),
+        
+        fluidRow(
+          
+          # Colonne infographie eau
+          column(
+            width = 6,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px;
+                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-height: 520px; display: flex; flex-direction: column; justify-content: space-between;",
+              
+              div(
+                style = "text-align: left;",
+                h3(icon("th"), "Consommation d’eau", style = "color: #31708f;"),
+                tags$p("Infographie simplifiée", style = "font-weight: bold; color: #333; margin-bottom: 3px;")
+              ),
+              
+              div(
+                style = "display: flex; justify-content: center; align-items: center;",
+                plotOutput("infographie_eau", height = "300px", width = "95%")
+              ),
+              
+              tags$div(
+                style = "background: #eef7fc; padding: 12px; border-radius: 6px; margin-top: 15px;",
+                tags$ul(
+                  style = "padding-left: 20px; margin-bottom: 5px;",
+                  tags$li(HTML("<strong>1 carré</strong> = <strong>1 million de litres</strong>")),
+                  tags$li(HTML("<span style='color:#f94144; font-weight:bold;'>Rouge</span> : entreprise de semi-conducteurs")),
+                  tags$li(HTML("<span style='color:#277da1; font-weight:bold;'>Bleu</span> : piscine olympique"))
+                )
+              )
+            )
+          ),
+          
+          # Colonne top 5
+          column(
+            width = 6,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px;
+                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-height: 520px; display: flex; flex-direction: column; justify-content: space-between;",
+              
+              div(
+                h3(icon("flag"), "Top 5 pays producteurs", style = "color: #31708f; margin-bottom: 15px;"),
+                DTOutput("top5_semi_conductors")
+              ),
+              
+              tags$div(
+                style = "background: #eef7fc; padding: 12px; border-radius: 6px; margin-top: 15px;",
+                tags$ul(
+                  style = "padding-left: 20px; margin-bottom: 5px;",
+                  tags$li(HTML("<strong>Taiwan</strong> produit à lui seul <strong>50&nbsp;%</strong> de tous les semi-conducteurs mondiaux.")),
+                  tags$li(HTML("Les États-Unis, le Japon et la Corée du Sud assurent ensemble environ un tiers de la production mondiale."))
+                )
+              )
+            )
+          )
         )
       ),
       
@@ -549,6 +586,18 @@ ui <- bs4DashPage(
           )
         ),
         
+        # Titre principal avec style
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+              h2(icon("earth-europe"), "Répartition des data centers en Europe", 
+                 style = "color: #31708f; font-weight: bold; margin: 0;")
+            )
+          )
+        ),
+        
         #### 1.1.1 Carte de répartition des DC en Europe + graphique----
         fluidRow(
           column(
@@ -558,7 +607,7 @@ ui <- bs4DashPage(
               
               h3(icon("map-marked-alt"), "Répartition des DC en Europe", style = "color: #31708f; margin-bottom: 15px;"),
               
-              leafletOutput("map1", height = "450px"),
+              withSpinner(leafletOutput("map1", height = "450px"), type = 6, color = "#444"),
               
               tags$p(
                 "Visualisation géographique de la distribution des data centres à travers l'Europe, montrant les zones de concentration principale.",
@@ -573,7 +622,7 @@ ui <- bs4DashPage(
               
               h3(icon("chart-bar"), "Part du nombre des DC en Europe", style = "color: #31708f; margin-bottom: 15px;"),
               
-              plotlyOutput("barPlot", height = "450px"),
+              withSpinner(plotlyOutput("barPlot", height = "450px"), type = 6, color = "#444"),
               
               tags$p(
                 "Répartition proportionnelle du nombre de data centres par pays européen, illustrant la dominance de certains marchés.",
@@ -659,7 +708,7 @@ ui <- bs4DashPage(
               
               h3(icon("bolt"), "Évolution de la demande énergétique", style = "color: #31708f; margin-bottom: 15px;"),
               
-              plotOutput("dc_demand_plot", height = "390px"),
+              withSpinner(plotOutput("dc_demand_plot", height = "390px"), type = 6, color = "#444"),
               
               tags$p(
                 "Selon ICIS, la demande énergétique des data centres en Europe passera de 96 TWh en 2024 à 236 TWh en 2035, représentant alors 5,7 % de la demande totale d'électricité.",
@@ -728,7 +777,7 @@ ui <- bs4DashPage(
                 style = "font-size: 14px; color: #555;"
               ),
               
-              leafletOutput("map", height = "650px")
+              withSpinner(leafletOutput("map", height = "650px"), type = 6, color = "#444")
             )
           )
         )
@@ -789,7 +838,7 @@ ui <- bs4DashPage(
             
             div(
               style = "flex-grow: 1;",
-              leafletOutput("map_totale", height = "450px")
+              withSpinner(leafletOutput("map_totale", height = "450px"), type = 6, color = "#444")
             )
           )
         ),
@@ -805,7 +854,7 @@ ui <- bs4DashPage(
             
             div(
               style = "flex-grow: 1;",
-              plotlyOutput("pie_chart", height = "450px")
+              withSpinner(plotlyOutput("pie_chart", height = "450px"), type = 6, color = "#444")
             )
           )
         )
@@ -820,7 +869,7 @@ ui <- bs4DashPage(
             
             h3(icon("chart-area"), "Évolution de la production par filière", style = "color: #31708f; margin-bottom: 15px;"),
             
-            plotlyOutput("area_chart", height = "320px")
+            withSpinner(plotlyOutput("area_chart", height = "320px"), type = 6, color = "#444")
           )
         )
       ),
@@ -836,7 +885,7 @@ ui <- bs4DashPage(
             
             div(
               style = "flex-grow: 1;",
-              leafletOutput("map6", height = "400px")
+              withSpinner(leafletOutput("map6", height = "400px"), type = 6, color = "#444")
             )
           )
         ),
@@ -849,7 +898,7 @@ ui <- bs4DashPage(
             
             div(
               style = "flex-grow: 1;",
-              plotlyOutput("radar_chart", height = "400px")
+              withSpinner(plotlyOutput("radar_chart", height = "400px"), type = 6, color = "#444")
             )
           )
         )
@@ -897,7 +946,7 @@ ui <- bs4DashPage(
             style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
             
             h3(icon("bolt"), "Consommation totale", style = "color: #31708f; margin-bottom: 15px;"),
-            leafletOutput("map_ara_totale", height = "530px"),
+            withSpinner(leafletOutput("map_ara_totale", height = "530px"), type = 6, color = "#444"),
             p(
               "Carte représentant la consommation énergétique totale par EPCI",
               style = "margin-top: 10px; font-size: 0.9em; color: #555;"
@@ -912,7 +961,7 @@ ui <- bs4DashPage(
               
               h3(icon("user"), "Consommation par habitant", style = "color: #31708f; margin-bottom: 15px;"),
               
-            leafletOutput("map_ara_hab", height = "530px"),
+            withSpinner(leafletOutput("map_ara_hab", height = "530px"), type = 6, color = "#444"),
             p(
               "Carte représentant la consommation énergétique ramenée à la population.",
               style = "margin-top: 10px; font-size: 0.9em; color: #555;"
@@ -934,7 +983,7 @@ ui <- bs4DashPage(
            h3(icon("industry"), "Centrales hydroélectriques et nucléaires",
               style = "color: #31708f; margin-bottom: 15px;"),
            
-           leafletOutput("map_centrales", height = "600px"),
+           withSpinner(leafletOutput("map_centrales", height = "600px"), type = 6, color = "#444"),
            
            p(
              "Carte représentant les centrales nucléaires et hydroélectriques avec des cercles proportionnels à leur puissance.",
@@ -1066,7 +1115,7 @@ ui <- bs4DashPage(
                                      max = 100, 
                                      value = 100,
                                      step = 1,
-                                     ticks = FALSE),
+                                     ticks = FALSE)
                          
                        )
                    )
@@ -1133,9 +1182,9 @@ ui <- bs4DashPage(
                          
                          # Facteur de charge bien placé
                          div(style = "margin-top: 20px; text-align: center;",
-                             span(icon("cogs"), style = "margin-right: 6px; color: #8b5cf6;"),
-                             span(textOutput("facteur_charge_affiche"), 
-                                  style = "font-weight: 600; color: #8b5cf6;")
+                             tags$span(icon("cogs"), style = "margin-right: 6px; color: #8b5cf6;"),
+                             tags$span(textOutput("facteur_charge_affiche"), 
+                                       style = "font-weight: 600; color: #8b5cf6;")
                          )
                        )
                    )
@@ -1148,7 +1197,7 @@ ui <- bs4DashPage(
           width = 12,
           div(
             h3(icon("chart-line"), "Tendances de consommation et production énergétique entre 2000 et 2050", class = "section-title"),
-            plotOutput("energiePlot", height = "300px")
+            withSpinner(plotOutput("energiePlot", height = "300px"), type = 6, color = "#444")
           )
         )
       ),
@@ -1164,7 +1213,7 @@ ui <- bs4DashPage(
               "Simulation de Projection : Production vs Consommation Énergétique 2025–2035",
               class = "section-title"
             ),
-            plotlyOutput("energy_plot", height = "600px"),
+            withSpinner(plotlyOutput("energy_plot"), type = 6, color = "#444"),
             p(
               "Les lignes de référence suivent les scénarios présentés dans le rapport ",
               tags$em("Futurs énergétique 2050"),

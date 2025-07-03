@@ -1,65 +1,47 @@
+create_energy_map <- function(data, var, couleur, titre) {
+  rayon <- sqrt(data$centroids[[var]]) * 9000
+  pal <- colorNumeric(c("white", couleur), domain = data$centroids[[var]])
+  
+  leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
+    addPolygons(data = data$polygons,
+                fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
+                popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
+    addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
+               fillColor = couleur, color = "black", weight = 1, fillOpacity = 0.7,
+               popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
+    addLegend("bottomleft", pal = pal, values = data$centroids[[var]], title = titre)
+}
+
 
 # SERVER ----
 server <- function(input, output, session) {
   
   ## Navigation----
-  
-  observeEvent(input$go_dc_europe, {
-    updateTabItems(session, "tabs", "dc_europe_map")
-  })
-  observeEvent(input$go_flapd, {
-    updateTabItems(session, "tabs", "flapd")
-  })
-  observeEvent(input$go_dc_france, {
-    updateTabItems(session, "tabs", "dc_france")
-  })
-  observeEvent(input$go_regions, {
-    updateTabItems(session, "tabs", "regions")
-  })
-  observeEvent(input$go_ara, {
-    updateTabItems(session, "tabs", "ara")
+  observe({
+    ids <- c("extraction", "semi_conductors", "dc_europe_map", "flapd", 
+             "dc_france", "regions", "ara", "sim1", "sim2")
+    lapply(ids, function(id) {
+      observeEvent(input[[paste0("go_", id)]], {
+        updateTabItems(session, "tabs", id)
+      })
+    })
   })
   
-  observeEvent(input$go_sim1, {
-    updateTabItems(session, "tabs", "sim1")
-  })
-  
-  observeEvent(input$go_sim2, {
-    updateTabItems(session, "tabs", "sim2")
-  })
-  
-  observeEvent(input$retour_accueil_dc_europe, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_flapd, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_dc_france, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_regions, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_ara, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_sim1, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
-  })
-  
-  observeEvent(input$retour_accueil_sim2, {
-    updateTabItems(session, inputId = "tabs", selected = "home")
+  observe({
+    retours <- c("extraction", "semi_conductors", "dc_europe", "flapd", 
+                 "dc_france", "regions", "ara", "sim1", "sim2")
+    
+    lapply(retours, function(tab) {
+      observeEvent(input[[paste0("retour_accueil_", tab)]], {
+        updateTabItems(session, "tabs", "home")
+      })
+    })
   })
   
   
-  # 
   # Préparation réactive des données----
-  # 
   
   # DC en Europe (nombre et ratio par million d'hab)
   europe_dc_data <- reactive({
@@ -83,13 +65,21 @@ server <- function(input, output, session) {
     colorQuantile("YlOrRd", domain = europe_dc_data()$dc_per_million, n = 5, na.color = "#cccccc")
   })
   
-  # Données régionales de production/consommation (France)
+  
+  # Cache pour éviter recalculs inutiles
+  regions_data_cache <- reactiveVal(NULL)
+  
   regions_data <- reactive({
+    if (!is.null(regions_data_cache())) return(regions_data_cache())
+    
     reg <- st_simplify(st_transform(regions, 4326), dTolerance = 1000, preserveTopology = TRUE)
     centroids <- st_centroid(reg)
     centroids$X <- st_coordinates(centroids)[,1]
     centroids$Y <- st_coordinates(centroids)[,2]
-    list(polygons = reg, centroids = centroids)
+    
+    res <- list(polygons = reg, centroids = centroids)
+    regions_data_cache(res)  # ⬅️ cache le résultat
+    res
   })
   
   
@@ -105,6 +95,355 @@ server <- function(input, output, session) {
     list(epci = data_ara_wgs84, villes = villes)
   })  
   
+  # Semi-conducteurs
+  semi_conductors_react <- reactive({
+    list(
+      data = extraction,
+      centroids = semi_centroids,
+      coords = semi_coords
+    )
+  })
+  
+  # Consommation d'eau
+  # Reactive data
+  waffle_data <- reactive({
+    data.frame(
+      id = 1:38,
+      couleur = c(rep("Piscine olympique", 3), rep("Entreprise semi-conducteurs", 35))
+    ) %>%
+      mutate(
+        x = (id - 1) %% 10 + 1,
+        y = -(floor((id - 1) / 10) + 1)  # y négatif pour affichage top-down
+      )
+  })
+  
+  # Données réactives pour extraction et centroïdes
+  # Réactif : extraction uniquement (sans centroïdes)
+  extraction_data <- reactive({
+    req(extraction)
+    extraction
+  })
+  
+  
+  # Réactif : flux commerciaux (inchangé)
+  flux_commerciaux <- reactive({
+    tribble(
+      ~source, ~target, ~value,
+      "Norway", "Netherlands", 111,
+      "Norway", "Sweden", 22,
+      "Norway", "Turkey", 19,
+      "Norway", "Germany", 14,
+      "Norway", "Italy", 10,
+      "Norway", "Spain", 10,
+      "Norway", "Poland", 8,
+      "Norway", "Denmark", 5,
+      "Norway", "Finland", 2,
+      "Norway", "Japan", 2,
+      "China", "Republic of Korea", 14,
+      "China", "Japan", 10,
+      "China", "Malaysia", 4,
+      "China", "Taiwan", 4,
+      "China", "India", 3,
+      "China", "Brazil", 3,
+      "China", "Thailand", 2,
+      "China", "Indonesia", 2,
+      "China", "Turkey", 2,
+      "South Africa", "Botswana", 7,
+      "South Africa", "Zimbabwe", 4,
+      "South Africa", "Namibia", 3,
+      "South Africa", "Gabon", 3,
+      "South Africa", "Australia", 4,
+      "South Africa", "Russia", 2,
+      "South Africa", "Netherlands", 2,
+      "South Africa", "India", 2,
+      "South Africa", "Brazil", 2,
+      "United States of America", "Mexico", 3,
+      "India", "United States of America", 5,
+      "India", "Turkey", 4,
+      "India", "Germany", 2,
+      "Bhutan", "India", 4,
+      "Russian Federation", "Saudi Arabia", 12,
+      "Russian Federation", "Japan", 11,
+      "Russian Federation", "Kazakhstan", 3,
+      "Russian Federation", "India", 1,
+      "Germany", "Mexico", 5,
+      "Germany", "Spain", 2,
+      "Germany", "Turkey", 3,
+      "Germany", "Belgium", 2,
+      "Germany", "Poland", 2,
+      "Germany", "Italy", 2,
+      "Germany", "Austria", 1,
+      "France", "Spain", 15,
+      "France", "Italy", 3,
+      "France", "Germany", 2,
+      "Canada", "United States of America", 63,
+      "Canada", "Australia", 13,
+      "Canada", "Mexico", 6,
+      "Canada", "Brazil", 3,
+      "Malaysia", "Thailand", 2,
+      "Spain", "Italy", 1,
+      "Kazakhstan", "Russian Federation", 2
+    )
+  })
+  
+  # Fonction utilitaire : retourne les 3 plus gros partenaires pour un pays donné
+  get_top3_partners <- function(pays, flux_df) {
+    flux_df %>%
+      filter(source == pays) %>%
+      arrange(desc(value)) %>%
+      slice_head(n = 3) %>%
+      pull(target) %>%
+      paste(collapse = ", ")
+  }
+  
+  # Réactif : table avec les top 3 partenaires pour chaque pays exportateur
+  top3_partners_all <- reactive({
+    flux <- flux_commerciaux()
+    pays_uniques <- unique(flux$source)
+    
+    tibble(
+      name = pays_uniques,
+      partenaires = sapply(pays_uniques, function(p) get_top3_partners(p, flux))
+    )
+  })
+  
+  # Réactif : flux commerciaux convertis en sf (basé sur coordonnées fixes)
+  flux_sf <- reactive({
+    flux <- flux_commerciaux()
+    
+    flux_coords <- flux %>%
+      left_join(pays_coords, by = c("source" = "name")) %>%
+      rename(lon_from = lon, lat_from = lat) %>%
+      left_join(pays_coords, by = c("target" = "name")) %>%
+      rename(lon_to = lon, lat_to = lat) %>%
+      filter(!is.na(lon_from), !is.na(lat_from), !is.na(lon_to), !is.na(lat_to))
+    
+    lignes <- st_sfc(
+      lapply(1:nrow(flux_coords), function(i) {
+        st_linestring(matrix(c(
+          flux_coords$lon_from[i], flux_coords$lat_from[i],
+          flux_coords$lon_to[i], flux_coords$lat_to[i]
+        ), ncol = 2, byrow = TRUE))
+      }),
+      crs = 4326
+    )
+    
+    st_sf(source = flux_coords$source,
+          target = flux_coords$target,
+          value = flux_coords$value,
+          geometry = lignes)
+  })
+  
+  
+  ## 1.0 Extraction et Production----
+  output$map_extraction <- renderLeaflet({
+    req(input$tabs == "extraction")
+    ext <- extraction_data()
+    lines <- flux_sf()
+    partners_df <- top3_partners_all()
+    
+    validate(need(nrow(ext) > 0, "Pas de polygones à afficher."))
+    
+    bins <- c(0, 1000, 5000, 10000, 100000, 1e6, Inf)
+    pal <- colorBin(palette = "YlGnBu", domain = ext$sillic_t3, bins = bins, na.color = "#f0f0f0")
+    
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = 20, lat = 30, zoom = 2.2) %>%
+      addPolygons(
+        data = ext,
+        fillColor = ~pal(sillic_t3),
+        fillOpacity = 0.8,
+        weight = 1,
+        color = "white",
+        label = ~{
+          top3 <- partners_df$partenaires[match(name, partners_df$name)]
+          paste0("<strong>", name, "</strong><br/>",
+                 "Extraction : ", sillic_t3, " tonnes<br/>",
+                 "Top partenaires : ", ifelse(is.na(top3), "Aucun", top3))
+        } %>% lapply(HTML),
+        labelOptions = labelOptions(direction = "auto"),
+        highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = FALSE),
+        group = "Extraction"
+      ) %>%
+      addPolylines(
+        data = lines,
+        weight = ~log1p(value) * 1.5,
+        color = "#e41a1c",
+        opacity = 0.7,
+        label = ~paste0(source, " → ", target, ": ", value, " M$"),
+        labelOptions = labelOptions(direction = "auto"),
+        group = "Flux"
+      ) %>%
+      addLegend(
+        "bottomright", pal = pal, values = ext$sillic_t3,
+        title = "Extraction (tonnes)", opacity = 1
+      )
+  })
+  
+  
+  ### infographie eau----
+  output$infographie_eau <- renderPlot({
+    df <- waffle_data()
+    
+    palette <- c(
+      "Entreprise semi-conducteurs" = "#f94144",  # rouge doux
+      "Piscine olympique" = "#277da1"            # bleu doux
+    )
+    
+    ggplot(df, aes(x = x, y = y, fill = couleur)) +
+      geom_tile(color = "white", size = 0.5) +
+      scale_fill_manual(values = palette) +
+      coord_fixed() +
+      theme_void() +
+      labs(
+        title = "Consommation d’eau (1 carré = 1 million de litres)",
+        subtitle = "Piscine olympique : 3 millions L | Entreprise semi-conducteurs : 38 millions L"
+      ) +
+      theme(
+        legend.position = "none",
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 13, hjust = 0.5)
+      )
+  })
+  
+  
+  ### map_semi_conductors----
+  output$map_semi_conductors <- renderLeaflet({
+    req(input$tabs == "semi_conductors")
+    sc <- semi_conductors_react()
+    
+    # Palette sur les parts > 0
+    pal <- colorNumeric("YlOrRd", domain = sc$data$sc_fab[sc$data$sc_fab > 0], na.color = "#dddddd")
+    
+    leaflet(sc$data) %>%
+      addTiles() %>%
+      setView(lng = 20, lat = 30, zoom = 2.2) %>%
+      addPolygons(
+        fillColor = ~ifelse(sc_fab == 0, "#dddddd", pal(sc_fab)),
+        weight = 1,
+        color = "white",
+        fillOpacity = 0.8,
+        label = ~lapply(
+          paste0("<strong>", name, "</strong><br/>",
+                 "Part mondiale : ", sc_fab, " %<br/>",
+                 "Nombre d'entreprises : ", sc_plants),
+          HTML
+        ),
+        highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = FALSE)
+      ) %>%
+      addCircleMarkers(
+        lng = sc$coords[, 1],
+        lat = sc$coords[, 2],
+        radius = ~sqrt(sc$centroids$sc_plants) * 3,
+        fillColor = "blue",
+        fillOpacity = 0.6,
+        stroke = FALSE,
+        label = lapply(
+          paste0("<strong>", sc$centroids$name, "</strong><br/>",
+                 "Entreprises : ", sc$centroids$sc_plants),
+          HTML
+        )
+      ) %>%
+      addLegend("bottomright", pal = pal, values = ~sc_fab,
+                title = "Part mondiale (%)",
+                opacity = 1)
+  })
+  
+  ### tableau Top 5 avec drapeaux----
+  output$top5_semi_conductors <- renderDT({
+    sc <- semi_conductors_react()$data
+    
+    flag_map <- c(
+      "Taiwan" = "tw",
+      "Republic of Korea" = "kr",
+      "United States of America" = "us",
+      "China" = "cn",
+      "Japan" = "jp"
+    )
+    
+    display_names <- c(
+      "Taiwan" = "Taiwan",
+      "Republic of Korea" = "South Korea",
+      "United States of America" = "USA",
+      "China" = "China",
+      "Japan" = "Japan"
+    )
+    
+    top5 <- sc %>%
+      filter(name %in% names(flag_map)) %>%
+      st_drop_geometry() %>%
+      mutate(
+        Drapeau = paste0('<img src="https://flagcdn.com/24x18/', flag_map[name], '.png">'),
+        Pays = display_names[name]
+      ) %>%
+      select(Drapeau, Pays, sc_fab, sc_plants) %>%
+      arrange(desc(sc_fab)) %>%
+      mutate(Rang = row_number()) %>%
+      select(Rang, Drapeau, Pays, sc_fab, sc_plants)
+    
+    datatable(
+      top5,
+      escape = FALSE,
+      rownames = FALSE,
+      colnames = c("Rang", "Drapeau", "Pays", "Part mondiale (%)", "Entreprises"),
+      options = list(dom = 't', pageLength = 5)
+    )
+  })
+  
+  ### sankey or----
+  output$sankey_gold_demand <- renderSankeyNetwork({
+    # Demande totale
+    total <- 4605
+    
+    # Définir les nœuds
+    nodes <- data.frame(name = c(
+      "Demande totale",
+      "Joaillerie", "Technologie", "Investissement", "Banques centrales",
+      "Consommation (joaillerie)", "Inventaire (joaillerie)",
+      "Électronique", "Dentaire", "Autres usages tech",
+      "Barres physiques", "Pièces officielles", "Médailles",
+      "Banques centrales (stock)"
+    ))
+    
+    # Flux (tonnes)
+    flux <- c(
+      2012, 326, 1181, 1086,      # Demande → secteurs
+      1878, 134,                  # Joaillerie → sous-secteurs
+      271, 9, 46,                 # Technologie → sous-secteurs
+      863, 201, 127,              # Investissement → sous-secteurs
+      1086                       # Banques centrales → elles-mêmes
+    )
+    
+    # Convertir en pourcentage (arrondi à 1 décimale)
+    flux_pct <- round(flux / total * 100, 1)
+    
+    # Définir les liens
+    links <- data.frame(
+      source = c(
+        0, 0, 0, 0,
+        1, 1,
+        2, 2, 2,
+        3, 3, 3,
+        4
+      ),
+      target = c(
+        1, 2, 3, 4,
+        5, 6,
+        7, 8, 9,
+        10, 11, 12,
+        13
+      ),
+      value = flux_pct
+    )
+    
+    sankeyNetwork(Links = links, Nodes = nodes,
+                  Source = "source", Target = "target",
+                  Value = "value", NodeID = "name",
+                  fontSize = 14, nodeWidth = 30,
+                  sinksRight = FALSE)
+  })
+  
  
   
   ## 1.1 Data centres en Europe----
@@ -112,6 +451,7 @@ server <- function(input, output, session) {
   ### Map1 - Carte de répartition----
   
   output$map1 <- renderLeaflet({
+    req(input$tabs == "dc_europe_map")
     europe_data <- europe_dc_data()
     pal <- europe_dc_pal()
     
@@ -131,7 +471,7 @@ server <- function(input, output, session) {
         color = "white",
         weight = 1,
         label = lapply(popup_txt, HTML),
-        highlightOptions = highlightOptions(weight = 2, color = "#444", fillOpacity = 0.9, bringToFront = TRUE)
+        highlightOptions = highlightOptions(weight = 2, color = "#444", fillOpacity = 0.9, bringToFront = FALSE)
       ) %>%
       addCircles(
         lng = ~lon, lat = ~lat, radius = ~radius,
@@ -266,10 +606,11 @@ server <- function(input, output, session) {
   
   # Affichage de la carte avec points + légende + zoom
   output$map <- renderLeaflet({
-    df <- data_filtrée()
+    req(input$tabs == "flapd")
+    df <- data_filtree()
     req(nrow(df) > 0)
     
-    is_detailed <- selected_ville() != "All"
+    is_detailed <- identical(selected_ville(), "All") == FALSE
     pal <- colorNumeric(
       palette = colorRampPalette(c("#fee0d2", "#fc9272", "#de2d26", "#a50f15"))(100),
       domain = df$capacity_e,
@@ -390,69 +731,30 @@ server <- function(input, output, session) {
   
   ## 2.1 Énergie en France----
   
-  ### Map3 - Carte Consommation d'énergie----
+  ### carte Conso et Prod d'énergie----
   output$map_conso <- renderLeaflet({
+    req(input$tabs == "regions")
     data <- regions_data()
-    pal <- colorNumeric("Blues", domain = data$centroids$CONSO_TWH)
-    rayon <- sqrt(data$centroids$CONSO_TWH) * 9000
-    
-    leaflet() %>%
-      addProviderTiles("CartoDB.Positron") %>%
-      setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
-      addPolygons(data = data$polygons,
-                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
-                  popup = ~paste0("<b>", NOM, "</b><br>Consommation : <b>", CONSO_TWH, " TWh</b>")) %>%
-      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
-                 fillColor = "#0B162C", color = "black", weight = 1, fillOpacity = 0.7,
-                 popup = ~paste0("<b>", NOM, "</b><br>Conso : <b>", CONSO_TWH, " TWh</b>")) %>%
-      addLegend("bottomleft", pal = pal, values = data$centroids$CONSO_TWH, title = "Consommation (TWh)")
+    create_energy_map(data, "CONSO_TWH", "#0B162C", "Consommation (TWh)")
   })
   
-  
-  
-  ### Map3bis - Production totale----
   output$map_prod <- renderLeaflet({
+    req(input$tabs == "regions")
     data <- regions_data()
-    pal <- colorNumeric("Greens", domain = data$centroids$PR_TOT_TWH)
-    rayon <- sqrt(data$centroids$PR_TOT_TWH) * 9000
-    
-    leaflet() %>%
-      addProviderTiles("CartoDB.Positron") %>%
-      setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
-      addPolygons(data = data$polygons,
-                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
-                  popup = ~paste0("<b>", NOM, "</b><br>Production : <b>", PR_TOT_TWH, " TWh</b>")) %>%
-      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
-                 fillColor = "#1A5D1A", color = "black", weight = 1, fillOpacity = 0.7,
-                 popup = ~paste0("<b>", NOM, "</b><br>Production : <b>", PR_TOT_TWH, " TWh</b>")) %>%
-      addLegend("bottomleft", pal = pal, values = data$centroids$PR_TOT_TWH, title = "Production (TWh)")
+    create_energy_map(data, "PR_TOT_TWH", "#1A5D1A", "Production (TWh)")
   })
-  
-  
-  
   
   output$map_totale <- renderLeaflet({
-    req(input$choix_map)
-    data <- regions_data()
+    req(input$tabs == "regions")  # facultatif mais recommandé
     
+    data <- regions_data()
     var <- if (input$choix_map == "conso") "CONSO_TWH" else "PR_TOT_TWH"
     couleur <- if (input$choix_map == "conso") "#6A645A" else "#E3CD8B"
     titre <- if (input$choix_map == "conso") "Consommation (TWh)" else "Production (TWh)"
-    rayon <- sqrt(data$centroids[[var]]) * 9000
     
-    pal <- colorNumeric(c("white", couleur), domain = data$centroids[[var]])
-    
-    leaflet() %>%
-      addProviderTiles("CartoDB.Positron") %>%
-      setView(lng = 2.2137, lat = 46.7276, zoom = 5) %>%
-      addPolygons(data = data$polygons,
-                  fillColor = "white", fillOpacity = 0.7, color = "black", weight = 1,
-                  popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
-      addCircles(data = data$centroids, lng = ~X, lat = ~Y, radius = rayon,
-                 fillColor = couleur, color = "black", weight = 1, fillOpacity = 0.7,
-                 popup = ~paste0("<b>", NOM, "</b><br>", titre, " : <b>", .[[var]], " TWh</b>")) %>%
-      addLegend("bottomleft", pal = pal, values = data$centroids[[var]], title = titre)
+    create_energy_map(data, var, couleur, titre)
   })
+  
   
   
   ### PieChart1 - Production d'énergie par filière----
@@ -656,6 +958,7 @@ server <- function(input, output, session) {
   
   ### Rendu Leaflet ----
   output$map6 <- renderLeaflet({
+    req(input$tabs == "regions")
     # Palette bivariée
     pal <- colorFactor(
       palette = unname(bivar_pal),
@@ -915,6 +1218,7 @@ server <- function(input, output, session) {
   ## 2.2 Énergie en Auvergne-Rhone-Alpes----
   
   output$map_ara_totale <- renderLeaflet({
+    req(input$tabs == "ara")
     data <- data_ara_data()
     pal <- colorBin("Oranges", domain = data$epci$tot, bins = 6, na.color = "#e0e0e0")
     labels <- sprintf("<strong>%s</strong><br/>Conso totale : %s MWh/an<br/>Population : %s",
@@ -939,6 +1243,7 @@ server <- function(input, output, session) {
   
   
   output$map_ara_hab <- renderLeaflet({
+    req(input$tabs == "ara")
     data <- data_ara_data()
     pal <- colorBin("Purples", domain = data$epci$conso_per_pop, bins = 5, na.color = "#e0e0e0")
     labels <- sprintf("<strong>%s</strong><br/>Conso/hab : %s MWh/an<br/>Population : %s",
@@ -988,6 +1293,7 @@ server <- function(input, output, session) {
   })
   
   output$map_centrales <- renderLeaflet({
+    req(input$tabs == "ara")
     pal <- colorFactor(
       palette = c("Hydroélectrique" = "#3182bd", "Nucléaire" = "#fdbb0b"),
       domain = prod_centrales$type

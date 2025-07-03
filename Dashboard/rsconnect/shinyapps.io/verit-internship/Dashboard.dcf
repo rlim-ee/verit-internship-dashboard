@@ -1,0 +1,12 @@
+name: Dashboard
+title: Dashboard
+username: verit-internship
+account: verit-internship
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15017225
+bundleId: 10547937
+url: https://verit-internship.shinyapps.io/Dashboard/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
