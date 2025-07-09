@@ -32,16 +32,26 @@ lapply(required_packages, library, character.only = TRUE)
 }
 
 
-dc_europe <- readRDS(here("dashboard", "data", "dc_europe.rds"))
-europe_map <- readRDS(here("dashboard", "data", "europe_map.rds"))
-regions <- readRDS(here("dashboard", "data", "regions_simplified.rds"))
-data_prod <- readRDS(here("dashboard", "data", "conso_evo.rds"))
-data_ara <- readRDS(here("dashboard", "data", "data_ara_epci.rds"))
-eol_aura <- readRDS(here("dashboard", "data", "eol_aura.rds"))
-sol_aura <- readRDS(here("dashboard", "data", "sol_aura.rds"))
-nuc_aura <- readRDS(here("dashboard", "data", "nuc_aura.rds"))
-hydro_aura <- readRDS(here("dashboard", "data", "hydro_aura.rds"))
-extraction <- readRDS(here("dashboard", "data", "extraction_simplifie.rds"))
+dc_europe <- readRDS(here("dashboard", 
+  "data", "dc_europe.rds"))
+europe_map <- readRDS(here("dashboard", 
+                           "data", "europe_map.rds"))
+regions <- readRDS(here("dashboard", 
+                        "data", "regions_simplified.rds"))
+data_prod <- readRDS(here("dashboard", 
+                          "data", "conso_evo.rds"))
+data_ara <- readRDS(here("dashboard", 
+                         "data", "data_ara_epci.rds"))
+eol_aura <- readRDS(here("dashboard", 
+                         "data", "eol_aura.rds"))
+sol_aura <- readRDS(here("dashboard", 
+                         "data", "sol_aura.rds"))
+nuc_aura <- readRDS(here("dashboard", 
+                         "data", "nuc_aura.rds"))
+hydro_aura <- readRDS(here("dashboard", 
+                           "data", "hydro_aura.rds"))
+extraction <- readRDS(here("dashboard", 
+                           "data", "extraction_simplifie.rds"))
 extraction <- extraction %>%
   st_make_valid() %>%  # Corrige les géométries invalides
   st_wrap_dateline(options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"), quiet = TRUE)

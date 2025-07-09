@@ -10,12 +10,14 @@ ui <- bs4DashPage(
   ## Sidebar ----
   sidebar = bs4DashSidebar(
     title = "Menu",
+    collapsed = TRUE,       
+    compact = TRUE,
     bs4SidebarMenu(
       id = "tabs",
       bs4SidebarMenuItem("Accueil", tabName = "home", icon = icon("home")),
       
       bs4SidebarMenuItem("Extr & Prod", icon = icon("spinner"),
-                         bs4SidebarMenuSubItem("Terres rares", tabName = "extraction"),
+                         bs4SidebarMenuSubItem("Métaux", tabName = "extraction"),
                          bs4SidebarMenuSubItem("Semi-conducteur", tabName = "semi_conductors")
       ),
       
@@ -185,6 +187,22 @@ ui <- bs4DashPage(
       bs4TabItem(
         tabName = "home",
         
+        fluidRow(
+          column(
+            width = 12,
+            div(
+              style = "text-align: right; margin-bottom: 20px;",
+              tags$a(
+                href = "user_guide/user_guide_general.pdf", 
+                target = "_blank", 
+                class = "btn btn-success",
+                style = "padding: 10px 20px; border-radius: 5px;",
+                icon("file-pdf"), " Guide d'utilisation"
+              )
+            )
+          )
+        ),
+        
         # Carte d'introduction
         bs4Card(
           title = "Contexte",
@@ -192,8 +210,15 @@ ui <- bs4DashPage(
           collapsible = TRUE,
           collapsed = TRUE,
           width = 12,
-          tags$p("Les centres de données, infrastructures clés du numérique, connaissent une forte croissance en Europe avec une capacité énergétique estimée à 9,2 GW pouvant atteindre 26,6 GW d'ici 2035. Cette expansion soulève des préoccupations environnementales majeures, notamment l'accaparement de l'énergie renouvelable au détriment d'autres usages. La France, parmi les pays les plus dotés en data centers, mise sur son autonomie énergétique, en particulier grâce à la région Auvergne-Rhône-Alpes, grande productrice d'hydroélectricité."),
-          tags$p("Dans ce contexte, la société française DataOne prévoit la construction de deux data centers surpuissants en Isère. Le site de Eybens devrait atteindre 1 GW de puissance d'ici 2035, avec une consommation exclusivement hydraulique selon les ambitions affichées. Ce projet illustre les enjeux liés au développement de l'intelligence artificielle, très énergivore, et met en lumière la nécessité d'un équilibre entre innovation technologique et durabilité énergétique."),
+          tags$p(
+            "Ce tableau de bord explore les enjeux liés à l’implantation des data centers, à travers trois grandes thématiques : l’extraction des ressources (métaux, semi-conducteurs), la répartition géographique des infrastructures (Europe, FLAP-D, France), et leur bilan énergétique à différentes échelles (France, Auvergne-Rhône-Alpes)."
+          ),
+          tags$p(
+            "Deux modules de simulation sont également proposés, basés sur une étude de cas à Eybens (Isère) : une simulation prédictive permettant de moduler le facteur de charge du data center, et une simulation comparative."
+          ),
+          tags$p(
+            "Dans ce contexte, la société française DataOne prévoit la construction de deux data centers surpuissants en Isère. Le site de Eybens devrait atteindre 1 GW de puissance d'ici 2035, avec une consommation exclusivement hydraulique selon les ambitions affichées. Ce projet illustre les enjeux liés au développement de l'intelligence artificielle, très énergivore, et met en lumière la nécessité d'un équilibre entre innovation technologique et durabilité énergétique."
+          ),
           tags$blockquote(
             "Les centres de données pourraient représenter 5,7 % de la demande totale d'électricité en Europe d'ici 2035.",
             style = "font-style: italic; color: #31708f;"
@@ -214,14 +239,14 @@ ui <- bs4DashPage(
                              icon("hammer")
                          ),
                          div(style = "text-align: right;",
-                             h3(actionLink("go_extraction", "Terres rares",
+                             h3(actionLink("go_extraction", "Métaux",
                                            style = "color: #4c3921; text-decoration: none;"),
                                 class = "energy-value-large"),
                              p("Cliquer pour voir", class = "energy-capacity-info")
                          )
                      ),
                      div(
-                       p("Extraction des terres rares", class = "energy-subtitle-text")
+                       p("Extraction des métaux", class = "energy-subtitle-text")
                      )
                  )
           ),
@@ -410,10 +435,10 @@ ui <- bs4DashPage(
       ),
       
       ### 1.0 Extraction----
-      
       bs4TabItem(
         tabName = "extraction",
-        # Bouton retour avec style
+        
+        # Bouton retour
         fluidRow(
           column(
             width = 12,
@@ -426,41 +451,103 @@ ui <- bs4DashPage(
           )
         ),
         
+        bs4Card(
+          title = tagList(icon("industry"), " Contexte"),
+          solidHeader = TRUE,
+          collapsible = TRUE,
+          collapsed = TRUE,
+          width = 12,
+          
+          tags$p(
+            HTML(
+              "Cette section propose une <strong>analyse de l’extraction des terres rares</strong> et des <strong>métaux stratégiques</strong> 
+      (comme le <span style='color:#e67e22;'>lithium</span>, le <span style='color:#3498db;'>silicium</span> ou le <span style='color:#95a5a6;'>cuivre</span>), 
+      indispensables à la fabrication des équipements numériques et au stockage de l’énergie."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Une <span style='color:#0073e6;'>carte interactive</span> permet de visualiser, pays par pays, 
+      les <strong>volumes extraits en tonnes par an</strong> pour chaque métal. 
+      L’utilisateur peut ainsi identifier les principaux producteurs mondiaux 
+      et observer la <span style='color:#d35400;'>concentration géographique</span> des ressources."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Un <strong>diagramme de type Sankey</strong> complète cette exploration en représentant les <span style='color:#2ecc71;'>usages finaux</span> des métaux sélectionnés 
+      (batteries, microélectronique, production d’énergie, etc.). 
+      Pour consulter les flux associés à un métal spécifique, <strong>cliquez sur le bouton</strong> correspondant en haut de l’onglet."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Les <strong>métaux critiques</strong> jouent un rôle central dans le fonctionnement des <span style='color:#17a2b8;'>infrastructures numériques</span>. 
+      On les retrouve dans les <strong>serveurs</strong>, les systèmes de <strong>refroidissement</strong>, les <strong>CPU/GPU</strong>, 
+      les <strong>semi-conducteurs</strong> et les dispositifs de <strong>stockage de données</strong>. 
+      Les <em>data centers</em>, véritables nœuds physiques du numérique, dépendent fortement de ces ressources 
+      pour assurer la <strong>puissance de calcul</strong>, la <strong>fiabilité</strong> et la <strong>densité énergétique</strong> de leurs équipements."
+            )
+          )
+        ),
+        
+        # Titre principal
         fluidRow(
           column(
             width = 12,
             div(
-              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
-              h2(icon("hammer"), "Extraction et échanges des terres rares", 
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; 
+                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+              h2(icon("hammer"), "Extraction des métaux", 
                  style = "color: #31708f; font-weight: bold; margin: 0;")
             )
           )
         ),
         
+        # Carte interactive
         fluidRow(
           column(
             width = 12,
             div(
-              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
-              h3(icon("globe"), "Extraction et échanges de sillicium", style = "color: #31708f; margin-bottom: 15px;"),
-              withSpinner(leafletOutput("map_extraction"), type = 6, color = "#444"),
-              tags$p("Carte interactive montrant l'extraction de terres rares (en tonnes) par pays et les flux commerciaux supérieurs à 1 million de dollars.",
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+              h3(icon("globe"), "Extraction des matières premières", style = "color: #31708f;"),
+              
+              # 🟢 Boutons pour sélectionner la ressource
+              radioButtons(
+                inputId = "selected_metal",
+                label = "Choisissez une ressource :",
+                choices = c("Silicium", "Or", "Cuivre", "Lithium", "Zinc"),
+                selected = "Or",
+                inline = TRUE
+              ),
+              
+              withSpinner(leafletOutput("map_extraction", height = "600px"), type = 6, color = "#444"),
+              tags$p("Carte interactive montrant l'extraction (en tonnes) par pays. Les pays sans production sont en gris.",
                      style = "margin-top: 15px; font-size: 16px; color: #555;")
             )
           )
         ),
         
-        # Diagramme Sankey de la demande en or
+        # Diagramme Sankey
         fluidRow(
           column(
             width = 12,
             div(
-              style = "background: #ffffff; padding: 20px; border-radius: 8px; 
-           box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
-              h3(icon("project-diagram"), "Répartition de la demande mondiale en or (2024)", style = "color: #b8860b; margin-bottom: 15px;"),
-              sankeyNetworkOutput("sankey_gold_demand", height = "500px"),
-              tags$p("Visualisation de la chaîne de répartition de la demande en or par secteur d’usage.",
-                     style = "margin-top: 15px; font-size: 16px; color: #555;")
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; 
+               box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
+              h3(icon("project-diagram"), textOutput("titre_sankey"),
+                 style = "color: #31708f; margin-bottom: 20px;"),
+              
+              uiOutput("sankey_ui"),
+              
+              tags$p(
+                "Visualisation de la répartition de la demande mondiale par secteur d’usage pour chaque ressource critique.",
+                style = "margin-top: 15px; font-size: 16px; color: #555;"
+              )
             )
           )
         )
@@ -482,6 +569,51 @@ ui <- bs4DashPage(
                 icon = icon("arrow-left"),
                 style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;"
               )
+            )
+          )
+        ),
+        
+        bs4Card(
+          title = tagList(icon("microchip"), " Contexte"),
+          solidHeader = TRUE,
+          collapsible = TRUE,
+          collapsed = TRUE,
+          width = 12,
+          
+          tags$p(
+            HTML(
+              "Cet onglet explore la <strong>répartition mondiale de la production de semi-conducteurs</strong>, éléments essentiels à la fabrication des équipements électroniques. 
+      Une <span style='color:#0073e6;'>carte interactive</span> permet de visualiser, par pays, la <strong>part de production</strong> et le <strong>nombre d’entreprises</strong> actives dans ce secteur stratégique."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Un <strong>tableau synthétique</strong> présente le <span style='color:#f39c12;'>top 5 des pays producteurs</span>, avec des indicateurs sur la concentration industrielle."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Un <strong>diagramme comparatif</strong> illustre la <span style='color:#28a745;'>consommation moyenne d’eau quotidienne</span> utilisée par les usines de production de semi-conducteurs, 
+      exprimée en équivalent <strong>piscines olympiques</strong> 🏊. Cette visualisation met en lumière l’impact environnemental souvent méconnu de cette industrie."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "<strong>Les semi-conducteurs sont au cœur des infrastructures numériques</strong> : 
+      ils constituent la base des processeurs <em>(CPU, GPU)</em>, des mémoires, des interfaces de réseau et des composants de stockage. 
+      Les <span style='color:#17a2b8;'>data centers</span>, en particulier ceux destinés à l’<strong>intelligence artificielle</strong>, nécessitent des volumes massifs de puces hautes performances."
+            )
+          ),
+          
+          tags$p(
+            HTML(
+              "Dans l’étude de cas d’<strong>Eybens (Isère)</strong>, le futur data center prévoit l’installation de <span style='color:#e83e8c;'>25 000 GPU</span>. 
+      Chaque GPU contient plusieurs dizaines de semi-conducteurs (cœur graphique, mémoire HBM, contrôleurs, etc.), soit un besoin estimé à 
+      <strong style='color:#dc3545;'>plus de 100 000 puces</strong> pour cette seule infrastructure. 
+      Cela souligne la <strong>dépendance technologique critique</strong> de ces centres à l’égard de l’industrie des semi-conducteurs."
             )
           )
         ),
@@ -1004,14 +1136,28 @@ ui <- bs4DashPage(
           width = 12,
           
           # Bouton retour à l'accueil
+          # Ligne avec deux colonnes : retour à gauche, PDF à droite
           fluidRow(
             column(
-              width = 12,
+              width = 6,
               div(
                 style = "margin-bottom: 20px;",
                 actionButton("retour_accueil_sim1", "Retour à l'accueil", 
                              icon = icon("arrow-left"),
                              style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+              )
+            ),
+            column(
+              width = 6,
+              div(
+                style = "text-align: right; margin-bottom: 20px;",
+                tags$a(
+                  href = "user_guide/user_guide_sim1.pdf", 
+                  target = "_blank", 
+                  class = "btn btn-success",
+                  style = "padding: 10px 20px; border-radius: 5px;",
+                  icon("file-pdf"), " Guide d'utilisation"
+                )
               )
             )
           ),
@@ -1031,10 +1177,10 @@ ui <- bs4DashPage(
             
             p(strong("📈 Hypothèses d'évolution :"), "Les prévisions suivent les étapes de développement du projet Data One :"),
             tags$ul(
-              tags$li("2025 : 15 MW (~0,13 TWh/an)"),
-              tags$li("2026 : 200 MW (~1,75 TWh/an)"),
-              tags$li("2028 : 400 MW (~3,50 TWh/an)"),
-              tags$li("2035 : 1 000 MW (~8,76 TWh/an)")
+              tags$li("2025 : 15 MW"),
+              tags$li("2026 : 200 MW"),
+              tags$li("2028 : 400 MW"),
+              tags$li("2035 : 1 000 MW")
             ),
             
             p("🏗️ La simulation permet d'extrapoler jusqu'à 35 data centers, en cohérence avec les ambitions exprimées par les pouvoirs publics en matière d'infrastructures numériques, notamment dans le cadre du développement de l'intelligence artificielle."),
@@ -1043,10 +1189,10 @@ ui <- bs4DashPage(
             
             p(strong("📊 Représentation graphique :")),
             tags$ul(
-              tags$li("Les points rouges indiquent la consommation cumulée des data centers ajoutée à la consommation énergétique actuelle"),
+              tags$li("Les points rouges indiquent la consommation cumulée des data centers ajoutée à la consommation énergétique 2024 (Consommation simulée)"),
               tags$li("La courbe verte représente la trajectoire de référence de la production énergétique nationale"),
-              tags$li("Les pointillés encadrant cette courbe correspondent aux intervalles de variation (minima et maxima) issus des différents scénarios prospectifs élaborés par RTE"),
-              tags$li("Le pointillé noir représente la trajectoire de référence de la production énergétique nationale")
+              tags$li("La courbe bleue représente la trajectoire de référence de la consommation énergétqiue nationale"),
+              tags$li("Les pointillés verts/bleus indiquent les variations min/max des différents scénarios RTE")
             ),
             
             tags$hr(),
@@ -1063,9 +1209,9 @@ ui <- bs4DashPage(
             
             tags$hr(),
             
-            p(strong("💡 Conversion des unités :"), "Pour comparer les consommations projetées, il est nécessaire de convertir les unités de GW en GWh/an selon la formule :"),
+            p(strong("💡 Conversion des unités :"), "Pour comparer les consommations projetées, il est nécessaire de convertir les unités de GW en TWh/an selon la formule :"),
             p(em("Énergie annuelle (GWh/an) = Puissance (GW) × 24 heures × 365 jours")),
-            p("Exemple pour 2035 : 1 GW = 1 × 24 × 365 = 8 760 GWh/an = 8,76 TWh/an"),
+            p("Exemple pour un data center d'une puissance d'1 GW et un facteur de charge de 60 % : 1 × 24 × 365 × 0,6 = 5 256 GWh/an = 5,26 TWh/an"),
             
             tags$hr(),
             
@@ -1151,7 +1297,7 @@ ui <- bs4DashPage(
                                      style = "background: linear-gradient(135deg, #226D68, #226D68); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
                                      icon("industry", style = "font-size: 12px; color: white;")
                                  ),
-                                 div("Production de départ 2025 : ", 
+                                 div("Production de départ (2024) : ", 
                                      tags$strong("538 TWh", style = "color: #f59e0b;")
                                  )
                                ),
@@ -1163,7 +1309,7 @@ ui <- bs4DashPage(
                                      style = "background: linear-gradient(135deg, #6c757d, #495057); width: 20px; height: 20px; margin-right: 10px; margin-top: 2px; display: flex; align-items: center; justify-content: center;",
                                      icon("home", style = "font-size: 12px; color: white;")
                                  ),
-                                 div("Consommation actuelle : ", 
+                                 div("Consommation de départ (2024) : ", 
                                      tags$strong("442 TWh", style = "color: #f59e0b;")
                                  )
                                ),
@@ -1368,12 +1514,25 @@ ui <- bs4DashPage(
           
           fluidRow(
             column(
-              width = 12,
+              width = 6,
               div(
                 style = "margin-bottom: 20px;",
                 actionButton("retour_accueil_sim2", "Retour à l'accueil", 
                              icon = icon("arrow-left"),
                              style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+              )
+            ),
+            column(
+              width = 6,
+              div(
+                style = "text-align: right; margin-bottom: 20px;",
+                tags$a(
+                  href = "user_guide/user_guide_sim2.pdf", 
+                  target = "_blank", 
+                  class = "btn btn-success",
+                  style = "padding: 10px 20px; border-radius: 5px;",
+                  icon("file-pdf"), " Guide d'utilisation"
+                )
               )
             )
           ),

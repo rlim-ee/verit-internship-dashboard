@@ -14,6 +14,38 @@ create_energy_map <- function(data, var, couleur, titre) {
     addLegend("bottomleft", pal = pal, values = data$centroids[[var]], title = titre)
 }
 
+create_sankey <- function(titre_racine, noms_usages, valeurs, couleurs) {
+  # Ajouter pourcentage dans les noms
+  noms_et_pourcent <- paste0(noms_usages, " (", valeurs, "%)")
+  
+  # Création des nœuds (racine + usages)
+  nodes <- data.frame(name = c(titre_racine, noms_et_pourcent))
+  
+  # Création des liens : source = racine (0), target = 1:n
+  links <- data.frame(
+    source = rep(0, length(valeurs)),
+    target = 1:length(valeurs),
+    value = valeurs
+  )
+  
+  # Palette D3 (JavaScript)
+  js_palette <- paste0(
+    "d3.scaleOrdinal().range([",
+    paste0('"', couleurs, '"', collapse = ", "),
+    "])"
+  )
+  
+  # Affichage du Sankey
+  sankeyNetwork(
+    Links = links, Nodes = nodes,
+    Source = "source", Target = "target",
+    Value = "value", NodeID = "name",
+    fontSize = 15, nodeWidth = 30,
+    colourScale = js_palette,
+    sinksRight = FALSE
+  )
+}
+
 
 # SERVER ----
 server <- function(input, output, session) {
@@ -239,46 +271,52 @@ server <- function(input, output, session) {
   output$map_extraction <- renderLeaflet({
     req(input$tabs == "extraction")
     ext <- extraction_data()
-    lines <- flux_sf()
-    partners_df <- top3_partners_all()
-    
     validate(need(nrow(ext) > 0, "Pas de polygones à afficher."))
     
-    bins <- c(0, 1000, 5000, 10000, 100000, 1e6, Inf)
-    pal <- colorBin(palette = "YlGnBu", domain = ext$sillic_t3, bins = bins, na.color = "#f0f0f0")
+    selected_field <- switch(input$selected_metal,
+                             "Silicium" = "sillic_t3",
+                             "Or" = "gold_t",
+                             "Cuivre" = "copper_t",
+                             "Lithium" = "lith_t",
+                             "Zinc" = "zinc_t")
     
-    leaflet() %>%
+    
+    values <- ext[[selected_field]]
+    values[is.na(values) | values == 0] <- NA  # gris pour les 0 et NA
+    
+    # Choix méthode de colorisation : bin (catégories) ou numeric (continu)
+    config <- switch(selected_field,
+                     "sillic_t3" = list(palette = "YlGnBu", type = "bin", bins = c(0, 1e3, 5e3, 1e4, 1e5, 1e6, Inf)),
+                     "gold_t"    = list(palette = "Oranges", type = "bin", bins = c(0, 0.1, 0.5, 1, 5, 10, 50, 100)),
+                     "copper_t"  = list(palette = "YlOrBr", type = "numeric"),
+                     "lith_t"    = list(palette = "PuRd", type = "bin", bins = c(0, 100, 500, 1000, 5000, 10000, Inf)),
+                     "zinc_t"    = list(palette = "GnBu", type = "numeric")
+    )
+    
+    # Choix de la palette selon le type
+    if (config$type == "bin") {
+      pal <- colorBin(palette = config$palette, domain = values, bins = config$bins, na.color = "#f0f0f0")
+    } else {
+      pal <- colorNumeric(palette = config$palette, domain = values, na.color = "#f0f0f0")
+    }
+    
+    leaflet(ext) %>%
       addTiles() %>%
       setView(lng = 20, lat = 30, zoom = 2.2) %>%
       addPolygons(
-        data = ext,
-        fillColor = ~pal(sillic_t3),
+        fillColor = ~pal(values),
         fillOpacity = 0.8,
         weight = 1,
         color = "white",
-        label = ~{
-          top3 <- partners_df$partenaires[match(name, partners_df$name)]
-          paste0("<strong>", name, "</strong><br/>",
-                 "Extraction : ", sillic_t3, " tonnes<br/>",
-                 "Top partenaires : ", ifelse(is.na(top3), "Aucun", top3))
-        } %>% lapply(HTML),
+        label = ~paste0(
+          "<strong>", name, "</strong><br/>Extraction : ",
+          ifelse(is.na(values), "Aucune", formatC(values, format = "f", digits = 2)), " tonnes"
+        ) %>% lapply(HTML),
         labelOptions = labelOptions(direction = "auto"),
-        highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = FALSE),
-        group = "Extraction"
+        highlightOptions = highlightOptions(weight = 2, color = "#666", fillOpacity = 0.9, bringToFront = FALSE)
       ) %>%
-      addPolylines(
-        data = lines,
-        weight = ~log1p(value) * 1.5,
-        color = "#e41a1c",
-        opacity = 0.7,
-        label = ~paste0(source, " → ", target, ": ", value, " M$"),
-        labelOptions = labelOptions(direction = "auto"),
-        group = "Flux"
-      ) %>%
-      addLegend(
-        "bottomright", pal = pal, values = ext$sillic_t3,
-        title = "Extraction (tonnes)", opacity = 1
-      )
+      addLegend("bottomright", pal = pal, values = values,
+                title = paste("Extraction de", input$selected_metal, "(tonnes)"), opacity = 1)
   })
   
   
@@ -392,57 +430,93 @@ server <- function(input, output, session) {
   })
   
   ### sankey or----
-  output$sankey_gold_demand <- renderSankeyNetwork({
-    # Demande totale
-    total <- 4605
+  output$sankey_gold <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    total <- 1067
+    flux <- c(434, 67, 2, 11, 258, 45, 23, 227)
+    pourcentages <- round(flux / total * 100, 1)
     
-    # Définir les nœuds
-    nodes <- data.frame(name = c(
-      "Demande totale",
-      "Joaillerie", "Technologie", "Investissement", "Banques centrales",
-      "Consommation (joaillerie)", "Inventaire (joaillerie)",
-      "Électronique", "Dentaire", "Autres usages tech",
-      "Barres physiques", "Pièces officielles", "Médailles",
-      "Banques centrales (stock)"
-    ))
-    
-    # Flux (tonnes)
-    flux <- c(
-      2012, 326, 1181, 1086,      # Demande → secteurs
-      1878, 134,                  # Joaillerie → sous-secteurs
-      271, 9, 46,                 # Technologie → sous-secteurs
-      863, 201, 127,              # Investissement → sous-secteurs
-      1086                       # Banques centrales → elles-mêmes
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c("Joaillerie", "Électronics", "Dentaire", "Autre industrie technologique", "Barres physiques", "Pièces officielles", "Médailles", "FNB"),
+      valeurs = pourcentages,
+      couleurs <- c(
+        "#FFD700", "#C0C0C0", "#FFB300", "#D4AF37",
+        "#B8860B", "#DAA520", "#E5C100", "#A67C00"
+      )
     )
-    
-    # Convertir en pourcentage (arrondi à 1 décimale)
-    flux_pct <- round(flux / total * 100, 1)
-    
-    # Définir les liens
-    links <- data.frame(
-      source = c(
-        0, 0, 0, 0,
-        1, 1,
-        2, 2, 2,
-        3, 3, 3,
-        4
-      ),
-      target = c(
-        1, 2, 3, 4,
-        5, 6,
-        7, 8, 9,
-        10, 11, 12,
-        13
-      ),
-      value = flux_pct
-    )
-    
-    sankeyNetwork(Links = links, Nodes = nodes,
-                  Source = "source", Target = "target",
-                  Value = "value", NodeID = "name",
-                  fontSize = 14, nodeWidth = 30,
-                  sinksRight = FALSE)
   })
+  
+  output$sankey_lithium <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c(
+        "Batteries", "Céramique et verre", "Graisses lubrifiantes",
+        "Production de polymères", "Flux de moulage", "Traitement de l'air", "Autres usages"
+      ),
+      valeurs = c(71, 14, 4, 2, 2, 1, 6),
+      couleurs = c("#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69")
+    )
+  })
+  
+  
+  output$sankey_copper <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c(
+        "Construction", "Infrastructures électriques", "Énergies renouvelables",
+        "Véhicules électriques (EV)", "Moteurs thermiques (ICE)", "Transports",
+        "Machines et équipements", "Autres usages"
+      ),
+      valeurs = c(27, 26, 7, 3, 5, 4, 11, 20),
+      couleurs = c("#7f2704", "#a63603", "#d94801", "#f16913", "#fd8d3c", "#fdae6b", "#fdd0a2", "#fee6ce")
+    )
+  })
+  
+  
+  output$sankey_silicon <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c(
+        "Alliages d'aluminium", "Silicones et silanes", "Photovoltaïque",
+        "Semi-conducteurs", "Autres usages"
+      ),
+      valeurs = c(45, 35, 12, 3, 5),
+      couleurs = c("#6baed6", "#9ecae1", "#c6dbef", "#fdd0a2", "#fdae6b")
+    )
+  })
+  
+  output$titre_sankey <- renderText({
+    paste("Chaîne d’usage de", input$selected_metal)
+  })
+  
+  output$sankey_ui <- renderUI({
+    req(input$selected_metal)
+    
+    switch(input$selected_metal,
+           "Or" = tagList(
+             h4("Demande mondiale en or (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_gold", height = "300px")
+           ),
+           "Lithium" = tagList(
+             h4("Demande mondiale en lithium (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_lithium", height = "300px")
+           ),
+           "Cuivre" = tagList(
+             h4("Demande mondiale en cuivre (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_copper", height = "300px")
+           ),
+           "Silicium" = tagList(
+             h4("Demande mondiale en silicium (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_silicon", height = "300px")
+           ),
+           "Zinc" = h4("Pas de données disponibles pour le zinc.", style = "color: #a94442;")
+    )
+  })
+  
   
  
   
@@ -1593,7 +1667,7 @@ server <- function(input, output, session) {
       y = conso_totale$Conso_Totale,
       type = 'scatter',
       mode = 'markers+text',  # 🔽 Ajouter texte
-      name = paste0('Simulation : Consommation brute actuelle + consommation de ', nb_dc, ' DC par palier'),
+      name = paste0('Consommation simulée : Consommation 2024 + consommation de ', nb_dc, ' DC par palier'),
       marker = list(
         color = '#D46F4D',
         size = 14,
@@ -1602,7 +1676,7 @@ server <- function(input, output, session) {
       ),
       text = conso_totale$Annee,            # 🔽 Texte = année
       textposition = 'top center',          # 🔽 Position du texte
-      hovertemplate = '<b>Consommation projetée</b><br>Année: %{x}<br>Consommation: %{y:.1f} TWh/an<br>%{text}<extra></extra>',
+      hovertemplate = '<b>Consommation simulée</b><br>Année: %{x}<br>Consommation: %{y:.1f} TWh/an<br>%{text}<extra></extra>',
       showlegend = TRUE
     )
     
