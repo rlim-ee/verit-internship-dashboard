@@ -5,7 +5,7 @@ account: verit-internship
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15017225
-bundleId: 10587636
+bundleId: 10593446
 url: https://verit-internship.shinyapps.io/Dashboard/
 version: 1
 asMultiple: FALSE

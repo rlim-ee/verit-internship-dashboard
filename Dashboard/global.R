@@ -1,5 +1,5 @@
 # INIT----
-required_packages <- c("shinycssloaders", "htmlwidgets", "DT", "networkD3", "shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "fresh", "leaflet", "tidyr", "bs4Dash", "shinyWidgets")
+required_packages <- c("shinyjs", "shinycssloaders", "htmlwidgets", "DT", "networkD3", "shiny", "sf", "readr", "here", "dplyr", "ggplot2", "plotly", "bslib", "shinydashboard", "fresh", "leaflet", "tidyr", "bs4Dash", "shinyWidgets")
 missing <- required_packages[!required_packages %in% installed.packages()]
 if(length(missing)) install.packages(missing)
 lapply(required_packages, library, character.only = TRUE)
@@ -8,6 +8,7 @@ lapply(required_packages, library, character.only = TRUE)
 {
   library(here)
   library(shiny)
+  library(shinyjs)
   library(bslib)
   library(shinydashboard)
   library(sf)
@@ -55,7 +56,6 @@ extraction <- readRDS(here("dashboard",
 extraction <- extraction %>%
   st_make_valid() %>%  # Corrige les géométries invalides
   st_wrap_dateline(options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"), quiet = TRUE)
-
 
 data_DC_FLAPD <- st_read(here(
   "dashboard",

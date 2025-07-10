@@ -1,4 +1,8 @@
+
+# 
 # USER INTERFACE ----
+#
+
 ui <- bs4DashPage(
   title = "Dashboard",
   fullscreen = TRUE,
@@ -7,7 +11,9 @@ ui <- bs4DashPage(
     title = tags$span("Tableau de bord", style = "font-weight: bold; color: #31708f;")
   ),
   
-  ## Sidebar ----
+  ##
+  ## SIDEBAR ----
+  ##
   sidebar = bs4DashSidebar(
     title = "Menu",
     collapsed = TRUE,       
@@ -39,14 +45,17 @@ ui <- bs4DashPage(
     )
   ),
   
-  ## Main Body ----
+  
+  ##
+  ## MAIN BODY ----
+  ##
   body = bs4DashBody(
     
     tags$head(
-      # Import de la police Poppins depuis Google Fonts
+      # Importer la police
       tags$link(href = "https://fonts.googleapis.com/css2?family=Poppins&display=swap", rel = "stylesheet"),
       
-      # CSS personnalisé
+      ### CSS personnalisé ----
       tags$style(HTML("
     body, h1, h2, h3, h4, h5, h6, .nav-link, .brand-text {
     font-family: 'Poppins', sans-serif !important;
@@ -180,10 +189,12 @@ ui <- bs4DashPage(
   "))
     ),
     
+    ###
+    ### ONGLETS ----
+    ###
     bs4TabItems(
       
-      ### Home Tab ----
-      ### Onglet Accueil ----
+      #### 0.0 Home Tab ----
       bs4TabItem(
         tabName = "home",
         
@@ -191,19 +202,15 @@ ui <- bs4DashPage(
           column(
             width = 12,
             div(
-              style = "text-align: right; margin-bottom: 20px;",
-              tags$a(
-                href = "user_guide/user_guide_general.pdf", 
-                target = "_blank", 
-                class = "btn btn-success",
-                style = "padding: 10px 20px; border-radius: 5px;",
-                icon("file-pdf"), " Guide d'utilisation"
-              )
+              style = "background: #f9f9f9; padding: 20px; border-radius: 8px; 
+                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+              h2(icon("table"), "Matérialités du numérique - Data Centers", 
+                 style = "color: #31708f; font-weight: bold; margin: 0;")
             )
           )
         ),
         
-        # Carte d'introduction
+        # Encadré déroulant d'introduction avec le contexte
         bs4Card(
           title = "Contexte",
           solidHeader = TRUE,
@@ -222,207 +229,231 @@ ui <- bs4DashPage(
           tags$blockquote(
             "Les centres de données pourraient représenter 5,7 % de la demande totale d'électricité en Europe d'ici 2035.",
             style = "font-style: italic; color: #31708f;"
+          ),
+          column(
+            width = 12,
+            div(
+              style = "text-align: right; margin-bottom: 20px;",
+              tags$a(
+                href = "user_guide/user_guide_general.pdf", 
+                target = "_blank", 
+                class = "btn btn-success",
+                style = "padding: 10px 20px; border-radius: 5px;",
+                icon("file-pdf"), " Guide d'utilisation"
+              )
+            )
           )
         ),
         
+        # 1ère section
         h3("Explorer le dashboard :", class = "section-header"),
         
-        ## Section : Extraction et production
+        ## 1ère sous-section : Extraction et Production
         h5("Extraction et Production", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         fluidRow(
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #4c3921;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #4c3921, #4c3921);",
-                             icon("hammer")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_extraction", "Métaux",
-                                           style = "color: #4c3921; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Extraction des métaux", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_extraction",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #4c3921;",
+                   onclick = "Shiny.setInputValue('go_extraction', Math.random())",
+                   
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #4c3921, #4c3921);",
+                           icon("hammer")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Métaux", style = "color: #4c3921;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Extraction des métaux", class = "energy-subtitle-text")
+                   )
                  )
           ),
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #cfd514;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #cfd514, #cfd514);",
-                             icon("microchip")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_semi_conductors", "Semi-conducteurs",
-                                           style = "color: #cfd514; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Production des semi-conducteurs", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_semi",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #cfd514;",
+                   onclick = "Shiny.setInputValue('go_semi_conductors', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #cfd514, #cfd514);",
+                           icon("microchip")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Semi-conducteurs", style = "color: #cfd514;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Production des semi-conducteurs", class = "energy-subtitle-text")
+                   )
                  )
           )
         ),
         
-        ## Section : Répartition des data centers
+        ## 2ème sous-section : Répartition des data centers
         h5("Répartition des data centers", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         fluidRow(
           column(4,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #3b82f6;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #3b82f6, #3b82f6);",
-                             icon("globe-europe")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_dc_europe_map", "Europe",
-                                           style = "color: #3b82f6; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Data centers en Europe", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_dc_europe",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #3b82f6;",
+                   onclick = "Shiny.setInputValue('go_dc_europe_map', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #3b82f6, #3b82f6);",
+                           icon("globe-europe")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Europe", style = "color: #3b82f6;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Data centers en Europe", class = "energy-subtitle-text")
+                   )
                  )
           ),
           column(4,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #f97316;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #f97316, #f97316);",
-                             icon("network-wired")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_flapd", "FLAP-D",
-                                           style = "color: #f97316; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Data centers dans les FLAP-D", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_flapd",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #f97316;",
+                   onclick = "Shiny.setInputValue('go_flapd', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #f97316, #f97316);",
+                           icon("network-wired")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("FLAP-D", style = "color: #f97316;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Data centers dans les FLAP-D", class = "energy-subtitle-text")
+                   )
                  )
           ),
           column(4,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #10b981;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #10b981, #10b981);",
-                             icon("server")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_dc_france", "France",
-                                           style = "color: #10b981; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Data centers en France", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_dc_france",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #10b981;",
+                   onclick = "Shiny.setInputValue('go_dc_france', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #10b981, #10b981);",
+                           icon("server")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("France", style = "color: #10b981;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Data centers en France", class = "energy-subtitle-text")
+                   )
                  )
           )
         ),
         
-        ## Section : Bilan énergétique
+        ## 3ème sous-section : Bilan énergétique
         h5("Bilan énergétique", style = "margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #0B162C"),
         fluidRow(
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #6366f1;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #6366f1, #6366f1);",
-                             icon("bolt")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_regions", "France",
-                                           style = "color: #6366f1; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Énergie en France", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_energy_france",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #6366f1;",
+                   onclick = "Shiny.setInputValue('go_regions', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #6366f1, #6366f1);",
+                           icon("bolt")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("France", style = "color: #6366f1;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Énergie en France", class = "energy-subtitle-text")
+                   )
                  )
           ),
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #ec4899;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #ec4899, #ec4899);",
-                             icon("chart-area")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_ara", "Auvergne-Rhône-Alpes",
-                                           style = "color: #ec4899; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Analyse régionale", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_energy_ara",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #ec4899;",
+                   onclick = "Shiny.setInputValue('go_ara', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #ec4899, #ec4899);",
+                           icon("chart-area")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Auvergne-Rhône-Alpes", style = "color: #ec4899;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Analyse régionale", class = "energy-subtitle-text")
+                   )
                  )
           )
         ),
         
-        ## Section : Simulations
+        ## 4ème sous-section : Simulations
         h3("Explorer les simulations :", class = "section-header"),
         fluidRow(
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #14b8a6;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #14b8a6, #14b8a6);",
-                             icon("chart-line")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_sim1", "Analyse prédictive",
-                                           style = "color: #14b8a6; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Projection énergétique", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_sim1",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #14b8a6;",
+                   onclick = "Shiny.setInputValue('go_sim1', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #14b8a6, #14b8a6);",
+                           icon("chart-line")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Analyse prédictive", style = "color: #14b8a6;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Projection énergétique", class = "energy-subtitle-text")
+                   )
                  )
           ),
           column(6,
-                 div(class = "modern-energy-card",
-                     style = "border-left-color: #06b6d4;",
-                     div(class = "energy-card-header",
-                         div(class = "energy-icon-circle",
-                             style = "background: linear-gradient(135deg, #06b6d4, #06b6d4);",
-                             icon("cogs")
-                         ),
-                         div(style = "text-align: right;",
-                             h3(actionLink("go_sim2", "Analyse comparative",
-                                           style = "color: #06b6d4; text-decoration: none;"),
-                                class = "energy-value-large"),
-                             p("Cliquer pour voir", class = "energy-capacity-info")
-                         )
-                     ),
-                     div(
-                       p("Comparaison de consommation", class = "energy-subtitle-text")
-                     )
+                 div(
+                   id = "card_sim2",
+                   class = "modern-energy-card",
+                   style = "cursor: pointer; border-left-color: #06b6d4;",
+                   onclick = "Shiny.setInputValue('go_sim2', Math.random())",
+                   div(class = "energy-card-header",
+                       div(class = "energy-icon-circle",
+                           style = "background: linear-gradient(135deg, #06b6d4, #06b6d4);",
+                           icon("cogs")
+                       ),
+                       div(style = "text-align: right;",
+                           h3("Analyse comparative", style = "color: #06b6d4;", class = "energy-value-large"),
+                           p("Cliquer pour voir", class = "energy-capacity-info")
+                       )
+                   ),
+                   div(
+                     p("Comparaison de consommation", class = "energy-subtitle-text")
+                   )
                  )
           )
         ),
@@ -434,7 +465,12 @@ ui <- bs4DashPage(
         )
       ),
       
-      ### 1.0 Extraction----
+      ###
+      ### 1. Extraction et Production ----
+      ###
+      ####
+      #### 1.1. Extraction des métaux ----
+      ####
       bs4TabItem(
         tabName = "extraction",
         
@@ -451,6 +487,7 @@ ui <- bs4DashPage(
           )
         ),
         
+        # Encadré déroulant avec le contexte
         bs4Card(
           title = tagList(icon("industry"), " Contexte"),
           solidHeader = TRUE,
@@ -494,7 +531,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Titre principal
+        # Titre
         fluidRow(
           column(
             width = 12,
@@ -507,7 +544,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Carte interactive
+        ##### 1.1.1. Carte de l'extraction des métaux ----
         fluidRow(
           column(
             width = 12,
@@ -516,11 +553,11 @@ ui <- bs4DashPage(
                box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px;",
               h3(icon("globe"), "Extraction des matières premières", style = "color: #31708f;"),
               
-              # 🟢 Boutons pour sélectionner la ressource
+              # Boutons pour sélectionner la ressource
               radioButtons(
                 inputId = "selected_metal",
                 label = "Choisissez une ressource :",
-                choices = c("Silicium", "Or", "Cuivre", "Lithium", "Zinc"),
+                choices = c("Silicium", "Or", "Cuivre", "Lithium", "Zinc", "Aluminium", "Nickel"),
                 selected = "Or",
                 inline = TRUE
               ),
@@ -532,7 +569,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Diagramme Sankey
+        ##### 1.1.2. Diagramme Sankey ----
         fluidRow(
           column(
             width = 12,
@@ -553,7 +590,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      ### 1.0 Production----
+      #### 1.2. Production----
       
       bs4TabItem(
         tabName = "semi_conductors",
@@ -573,6 +610,7 @@ ui <- bs4DashPage(
           )
         ),
         
+        # Encadré déroulant avec le contexte
         bs4Card(
           title = tagList(icon("microchip"), " Contexte"),
           solidHeader = TRUE,
@@ -618,6 +656,7 @@ ui <- bs4DashPage(
           )
         ),
         
+        # Titre
         fluidRow(
           column(
             width = 12,
@@ -629,7 +668,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Carte en pleine largeur
+        ##### 1.2.1. Carte de production des semi-conducteurs ----
         fluidRow(
           column(
             width = 12,
@@ -646,7 +685,7 @@ ui <- bs4DashPage(
         
         fluidRow(
           
-          # Colonne infographie eau
+          ##### 1.2.2. Infographie de la consommation d'eau ----
           column(
             width = 6,
             div(
@@ -676,7 +715,7 @@ ui <- bs4DashPage(
             )
           ),
           
-          # Colonne top 5
+          ##### 1.2.3. Top 5 des pays producteurs de semi-conducteurs ----
           column(
             width = 6,
             div(
@@ -701,11 +740,17 @@ ui <- bs4DashPage(
         )
       ),
       
-      ### 1.1 Data centres en Europe----
+      ###
+      ### 2. Répratition des data centres ----
+      ###
+      ####
+      #### 2.1. Data centers en Europe ----
+      ####
+      
       bs4TabItem(
         tabName = "dc_europe_map",
         
-        # Bouton retour avec style
+        # Bouton retour
         fluidRow(
           column(
             width = 12,
@@ -718,7 +763,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        # Titre principal avec style
+        # Titre
         fluidRow(
           column(
             width = 12,
@@ -730,8 +775,9 @@ ui <- bs4DashPage(
           )
         ),
         
-        #### 1.1.1 Carte de répartition des DC en Europe + graphique----
         fluidRow(
+          
+          ##### 2.1.1. Carte de répartition des DC en Europe ----
           column(
             width = 6,
             div(
@@ -747,6 +793,8 @@ ui <- bs4DashPage(
               )
             )
           ),
+          
+          ##### 2.1.2. Graphique en barres de la répartition des DC en Europe ----
           column(
             width = 6,
             div(
@@ -764,7 +812,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        #### 1.1.2 Chiffres clés----
+        ##### 2.1.3. Chiffres clés----
         fluidRow(
           style = "margin-bottom: 30px;",
           column(
@@ -831,7 +879,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        #### 1.1.3 Graphique de l'évolution de la demande----
+        ##### 2.1.4. Graphique de l'évolution de la demande énergétique des DC ----
         fluidRow(
           column(
             width = 12,
@@ -851,10 +899,14 @@ ui <- bs4DashPage(
         )
        ),
       
-      ### 1.2 Data centres dans les FLAP-D----
+      ####
+      #### 2.2. Data centres dans les FLAP-D ----
+      ####
+      
       bs4TabItem(
         tabName = "flapd",
         
+        # Bouton retour
         fluidRow(
           column(
             width = 12,
@@ -867,7 +919,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        #### Titre et description ----
+        # Titre
         fluidRow(
           column(
             width = 12,
@@ -884,7 +936,7 @@ ui <- bs4DashPage(
           )
         ),
         
-        #### Carte interactive + boutons de sélection ----
+        ##### 2.2.1. Carte de la répartition des DC dans les FLAP-D ----
         fluidRow(
           column(
             width = 12,
@@ -916,17 +968,23 @@ ui <- bs4DashPage(
        ),
     
     
+    ####
+    #### 2.3. Data centres en France ----
+    ####
     
-    ### 1.3 Data centres en France----
     
     
+    ###
+    ### 3. Bilan énergétique ----
+    ###
+    ####
+    #### 3.1. Énergie en France----
+    ####
     
-    
-    ### 2.1 Énergie en France----
     bs4TabItem(
       tabName = "regions",
       
-      # Bouton retour avec style
+      # Bouton retour
       fluidRow(
         column(
           width = 12,
@@ -939,7 +997,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Titre principal avec style
+      # Titre
       fluidRow(
         column(
           width = 12,
@@ -951,8 +1009,8 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Première ligne : carte + camembert
       fluidRow(
+        ##### 3.1.1. Carte de production et consommation énergétique par région avec des cercles proportionnels ----
         column(
           width = 6,
           div(
@@ -974,6 +1032,8 @@ ui <- bs4DashPage(
             )
           )
         ),
+        
+        ##### 3.1.2. Camambert de répartition de la productin énergétique par filière ----
         column(
           width = 6,
           div(
@@ -992,7 +1052,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Deuxième ligne : évolution par filière
+      ##### 3.1.3. Évolution de la production et consommation énergéttique par filière ----
       fluidRow(
         column(
           width = 12,
@@ -1006,8 +1066,9 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Troisième ligne : carte flux + radar
       fluidRow(
+        
+        ##### 3.1.4. Carte de typologie des régions françaises en fonction du bilan énergétique ----
         column(
           width = 6,
           div(
@@ -1021,6 +1082,8 @@ ui <- bs4DashPage(
             )
           )
         ),
+        
+        ##### 3.1.5. Graphique en radar de Production et Consommation énergétique par région ----
         column(
           width = 6,
           div(
@@ -1037,16 +1100,14 @@ ui <- bs4DashPage(
       )
     ),
     
+    ####
+    #### 3.2. Énergie en Auvergne-Rhone-Alpes ----
+    ####
     
-    
-    
-    
-    
-    ### 2.2 Énergie en Auvergne-Rhone-Alpes----
     bs4TabItem(
       tabName = "ara",
       
-      # Bouton retour avec style
+      # Bouton
       fluidRow(
         column(
           width = 12,
@@ -1059,7 +1120,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Titre principal avec style
+      # Titre
       fluidRow(
         column(
           width = 12,
@@ -1072,6 +1133,8 @@ ui <- bs4DashPage(
       ),
       
       fluidRow(
+        
+        ##### 3.2.1. Carte de la consommation énergétique des EPCI ----
         column(
           width = 6,
           div(
@@ -1085,6 +1148,8 @@ ui <- bs4DashPage(
             )
           )
         ),
+        
+        ##### 3.2.2. Carte de la consommation énergétique des EPCI par habitant ----
         column(
           width = 6,
           div(
@@ -1103,8 +1168,7 @@ ui <- bs4DashPage(
       )
      ),
      
-     ### Installation énergétique dans la région----
-     
+     ##### 3.2.3. Installation énergétique dans la région ----
      fluidRow(
        column(
          width = 12,
@@ -1124,19 +1188,22 @@ ui <- bs4DashPage(
          )
        )
      )
-     
     ),
     
-
-    ### 3.1 Sim1----
+    ###
+    ### 4. Simulations ----
+    ###
+    #### 
+    #### 4.1. Simulation 1 - Analyse prédictive ----
+    ####
+    
     tabItem(
       tabName = "sim1",
       fluidRow(
         column(
           width = 12,
           
-          # Bouton retour à l'accueil
-          # Ligne avec deux colonnes : retour à gauche, PDF à droite
+          # Bouton retour
           fluidRow(
             column(
               width = 6,
@@ -1147,6 +1214,8 @@ ui <- bs4DashPage(
                              style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
               )
             ),
+            
+            # Guide d'utilisation
             column(
               width = 6,
               div(
@@ -1163,7 +1232,7 @@ ui <- bs4DashPage(
           ),
           
           
-          #### Boîte d'explication----
+          ##### 4.1.1. Boîte d'explication ----
           bs4Card(
             title = "ℹ️ À propos de cette simulation",
             status = "info",
@@ -1220,7 +1289,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      #### Paramètres de simulation----
+      ##### 4.1.2. Paramètres de simulation ----
       div(style = "margin-bottom: 30px;",
           fluidRow(
             column(6,
@@ -1267,6 +1336,7 @@ ui <- bs4DashPage(
                    )
             ),
             
+            ##### 4.1.3. Données de référance ----
             column(6,
                    div(class = "modern-energy-card", 
                        style = "border-left-color: #f59e0b; min-height: 360px;",
@@ -1326,7 +1396,7 @@ ui <- bs4DashPage(
                              )
                          ),
                          
-                         # Facteur de charge bien placé
+                         # Facteur de charge
                          div(style = "margin-top: 20px; text-align: center;",
                              tags$span(icon("cogs"), style = "margin-right: 6px; color: #8b5cf6;"),
                              tags$span(textOutput("facteur_charge_affiche"), 
@@ -1338,6 +1408,7 @@ ui <- bs4DashPage(
           )
       ),
       
+      ##### 4.1.4. Tendances de consommation et production énergétique entre 2000 et 2050
       fluidRow(
         column(
           width = 12,
@@ -1349,7 +1420,7 @@ ui <- bs4DashPage(
       ),
       
       
-      #### Graphique principal----
+      ##### 4.1.5. Graphique principal ----
       fluidRow(
         column(
           width = 12,
@@ -1377,7 +1448,8 @@ ui <- bs4DashPage(
         )
       ),
       
-      # Première ligne : Nucléaire, Hydro, Charbon
+      ##### 4.1.6. Équivalent en unités de production
+      # Première ligne : nucléaire, hydraulique, charbon
       fluidRow(
         column(4,
                div(class = "modern-energy-card", 
@@ -1501,18 +1573,20 @@ ui <- bs4DashPage(
     
     
     
+    ####
+    #### 4.2. Simulation 2 - Analyse comparative ----
+    ####
     
-    ### 3.2 Sim2 ----
     tabItem(
       tabName = "sim2",
       
-      #### Boite d'explication----
       fluidRow(
         column(
           width = 12,
           
-          
           fluidRow(
+            
+            # Bouton retour
             column(
               width = 6,
               div(
@@ -1521,23 +1595,25 @@ ui <- bs4DashPage(
                              icon = icon("arrow-left"),
                              style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
               )
-            ),
-            column(
-              width = 6,
-              div(
-                style = "text-align: right; margin-bottom: 20px;",
-                tags$a(
-                  href = "user_guide/user_guide_sim2.pdf", 
-                  target = "_blank", 
-                  class = "btn btn-success",
-                  style = "padding: 10px 20px; border-radius: 5px;",
-                  icon("file-pdf"), " Guide d'utilisation"
-                )
-              )
             )
+            
+            # Guide d'utilisation
+            #column(
+              #width = 6,
+              #div(
+                #style = "text-align: right; margin-bottom: 20px;",
+                #tags$a(
+                  #href = "user_guide/user_guide_sim2.pdf", 
+                  #target = "_blank", 
+                  #class = "btn btn-success",
+                  #style = "padding: 10px 20px; border-radius: 5px;",
+                  #icon("file-pdf"), " Guide d'utilisation"
+                #)
+              #)
+            #)
           ),
           
-          
+          ##### 4.2.1. Boite d'explication ----
           bs4Card(
             title = "ℹ️ À propos de cette simulation",
             status = "info",
@@ -1571,7 +1647,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      #### Graphique 1 - Comparaison avec consommation par pays----
+      ##### 4.2.2. Graphique 1 - Comparaison avec consommation par pays ----
       fluidRow(
         bs4Card(
           title = "Simulation : Comparaison avec la consommation par habitant à travers le monde",
@@ -1596,7 +1672,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      #### Encarts info pour les habitants équivalents pour le Mali, le Qatar et la France
+      ##### 4.2.3. Encarts info pour les habitants équivalents pour le Mali, le Qatar et la France ----
       fluidRow(
         column(4,
                div(class = "modern-energy-card", 
@@ -1654,7 +1730,7 @@ ui <- bs4DashPage(
         )
       ),
       
-      #### Graphique 2 - Simulation personnalisée----
+      ##### 4.2.4. Graphique 2 - Simulation personnalisée ----
       fluidRow(
         bs4Card(
           title = "Simulation personnalisée : Comparer jusqu'à 8 consommations de votre choix",
@@ -1691,8 +1767,8 @@ ui <- bs4DashPage(
         )
       )
     )
-  
    )
   )
  )
   
+# END ----

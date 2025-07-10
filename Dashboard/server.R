@@ -1,3 +1,7 @@
+#
+# FONCTION ----
+#
+
 create_energy_map <- function(data, var, couleur, titre) {
   rayon <- sqrt(data$centroids[[var]]) * 9000
   pal <- colorNumeric(c("white", couleur), domain = data$centroids[[var]])
@@ -46,18 +50,24 @@ create_sankey <- function(titre_racine, noms_usages, valeurs, couleurs) {
   )
 }
 
-
+#
 # SERVER ----
+#
+
 server <- function(input, output, session) {
   
-  ## Navigation----
+  ##
+  ## Navigation ----
+  ##
+  
   observe({
     ids <- c("extraction", "semi_conductors", "dc_europe_map", "flapd", 
              "dc_france", "regions", "ara", "sim1", "sim2")
+    
     lapply(ids, function(id) {
       observeEvent(input[[paste0("go_", id)]], {
-        updateTabItems(session, "tabs", id)
-      })
+        updateTabItems(session, "tabs", selected = id)
+      }, ignoreInit = TRUE)
     })
   })
   
@@ -72,8 +82,9 @@ server <- function(input, output, session) {
     })
   })
   
-  
-  # Préparation réactive des données----
+  ##
+  ## Préparation réactive des données ----
+  ##
   
   # DC en Europe (nombre et ratio par million d'hab)
   europe_dc_data <- reactive({
@@ -137,7 +148,6 @@ server <- function(input, output, session) {
   })
   
   # Consommation d'eau
-  # Reactive data
   waffle_data <- reactive({
     data.frame(
       id = 1:38,
@@ -266,34 +276,38 @@ server <- function(input, output, session) {
           geometry = lignes)
   })
   
-  
-  ## 1.0 Extraction et Production----
+  ##
+  ## 1.1. Extraction ----
+  ##
+  ### Carte d'extraction des métaux ----
   output$map_extraction <- renderLeaflet({
     req(input$tabs == "extraction")
     ext <- extraction_data()
     validate(need(nrow(ext) > 0, "Pas de polygones à afficher."))
     
     selected_field <- switch(input$selected_metal,
-                             "Silicium" = "sillic_t3",
-                             "Or" = "gold_t",
-                             "Cuivre" = "copper_t",
-                             "Lithium" = "lith_t",
-                             "Zinc" = "zinc_t")
-    
+                             "Silicium"  = "sillic_t3",
+                             "Or"        = "gold_t",
+                             "Cuivre"    = "copper_t",
+                             "Lithium"   = "lith_t",
+                             "Zinc"      = "zinc_t",
+                             "Aluminium" = "alum",
+                             "Nickel"    = "nick")
     
     values <- ext[[selected_field]]
     values[is.na(values) | values == 0] <- NA  # gris pour les 0 et NA
     
-    # Choix méthode de colorisation : bin (catégories) ou numeric (continu)
     config <- switch(selected_field,
                      "sillic_t3" = list(palette = "YlGnBu", type = "bin", bins = c(0, 1e3, 5e3, 1e4, 1e5, 1e6, Inf)),
                      "gold_t"    = list(palette = "Oranges", type = "bin", bins = c(0, 0.1, 0.5, 1, 5, 10, 50, 100)),
                      "copper_t"  = list(palette = "YlOrBr", type = "numeric"),
                      "lith_t"    = list(palette = "PuRd", type = "bin", bins = c(0, 100, 500, 1000, 5000, 10000, Inf)),
-                     "zinc_t"    = list(palette = "GnBu", type = "numeric")
+                     "zinc_t"    = list(palette = "GnBu", type = "bin", bins = c(0, 220000, 490000, 690000, 860000, 1100000, 1400000, Inf)),
+                     "alum"      = list(palette = "Greens", type = "bin", bins = c(0, 67000000, 110000000, 270000000, 380000000, 780000000, Inf)),  
+                     "nick"      = list(palette = "Oranges", type = "bin", bins = c (0, 88500, 155000, 222000, 345000,1600000, Inf))
     )
     
-    # Choix de la palette selon le type
+    # Choix de la palette
     if (config$type == "bin") {
       pal <- colorBin(palette = config$palette, domain = values, bins = config$bins, na.color = "#f0f0f0")
     } else {
@@ -320,7 +334,7 @@ server <- function(input, output, session) {
   })
   
   
-  ### infographie eau----
+  ### Infographie eau ----
   output$infographie_eau <- renderPlot({
     df <- waffle_data()
     
@@ -345,8 +359,10 @@ server <- function(input, output, session) {
       )
   })
   
-  
-  ### map_semi_conductors----
+  ##
+  ## 1.2. Production ----
+  ##
+  ### Carte de production des semi-conducteurs ----
   output$map_semi_conductors <- renderLeaflet({
     req(input$tabs == "semi_conductors")
     sc <- semi_conductors_react()
@@ -388,7 +404,7 @@ server <- function(input, output, session) {
                 opacity = 1)
   })
   
-  ### tableau Top 5 avec drapeaux----
+  ### Tableau Top 5 ----
   output$top5_semi_conductors <- renderDT({
     sc <- semi_conductors_react()$data
     
@@ -429,7 +445,7 @@ server <- function(input, output, session) {
     )
   })
   
-  ### sankey or----
+  ### Diagrammes de Sankey ----
   output$sankey_gold <- renderSankeyNetwork({
     req(input$tabs == "extraction")
     total <- 1067
@@ -489,6 +505,36 @@ server <- function(input, output, session) {
     )
   })
   
+  output$sankey_aluminium <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c(
+        "Transport", "Construction", "Génie électrique",
+        "Machines et équipements", "Emballage", "Feuilles", "Autres", "Biens de consommation"
+      ),
+      valeurs = c(27, 25, 13, 9, 8, 8, 5, 5),
+      couleurs = c("#d4d4d4", "#bababa", "#8c8c8c", "#a1c9f4",
+                   "#80b1d3", "#fdb462", "#b3de69", "#fb8072")
+    )
+  })
+  
+  output$sankey_nickel <- renderSankeyNetwork({
+    req(input$tabs == "extraction")
+    
+    create_sankey(
+      titre_racine = "Demande totale",
+      noms_usages = c(
+        "Acier inoxydable", "Batteries", "Alliages spéciaux",
+        "Électrodéposition", "Acier spécial", "Autres"
+      ),
+      valeurs = c(65, 15, 8, 6, 5, 1),
+      couleurs = c("#4F81BD", "#1f78b4", "#b3cde3",
+                   "#fb8072", "#b2df8a", "#cccccc")
+    )
+  })
+  
   output$titre_sankey <- renderText({
     paste("Chaîne d’usage de", input$selected_metal)
   })
@@ -497,32 +543,48 @@ server <- function(input, output, session) {
     req(input$selected_metal)
     
     switch(input$selected_metal,
+           
            "Or" = tagList(
              h4("Demande mondiale en or (en %)", style = "color: #555;"),
              sankeyNetworkOutput("sankey_gold", height = "300px")
            ),
+           
            "Lithium" = tagList(
              h4("Demande mondiale en lithium (en %)", style = "color: #555;"),
              sankeyNetworkOutput("sankey_lithium", height = "300px")
            ),
+           
            "Cuivre" = tagList(
              h4("Demande mondiale en cuivre (en %)", style = "color: #555;"),
              sankeyNetworkOutput("sankey_copper", height = "300px")
            ),
+           
            "Silicium" = tagList(
              h4("Demande mondiale en silicium (en %)", style = "color: #555;"),
              sankeyNetworkOutput("sankey_silicon", height = "300px")
            ),
-           "Zinc" = h4("Pas de données disponibles pour le zinc.", style = "color: #a94442;")
+           
+           "Aluminium" = tagList(
+             h4("Demande mondiale en aluminium (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_aluminium", height = "300px")
+           ),
+           
+           "Nickel" = tagList(
+             h4("Demande mondiale en nickel (en %)", style = "color: #555;"),
+             sankeyNetworkOutput("sankey_nickel", height = "300px")
+           ),
+           
+           "Zinc" = h4("Pas de données disponibles pour le zinc.", style = "color: #a94442;"),
+           
+           h4("Veuillez sélectionner un matériau.", style = "color: #888;")
     )
   })
   
+  ##
+  ## 2.1. Data centres en Europe ----
+  ##
   
- 
-  
-  ## 1.1 Data centres en Europe----
-  
-  ### Map1 - Carte de répartition----
+  ### Carte de répartition des DC en Europe ----
   
   output$map1 <- renderLeaflet({
     req(input$tabs == "dc_europe_map")
@@ -556,7 +618,7 @@ server <- function(input, output, session) {
   })
   
   
-  ### BarPlot1 - graphique de répartition en barres----
+  ### Graphique de répartition en barres ----
   data_centres <- data.frame(
     Country = c("Allemagne", "Royaume-Uni", "France", "Pays-Bas", "Italie",
                 "Espagne", "Suisse", "Pologne", "Suède", "Belgique",
@@ -604,7 +666,7 @@ server <- function(input, output, session) {
       )
   })
   
-  ### Évolution de la demande entre 2000 et 2050----
+  ### Évolution de la demande entre 2000 et 2050 ----
   
   output$dc_demand_plot <- renderPlot({
     data <- data.frame(
@@ -642,12 +704,10 @@ server <- function(input, output, session) {
       expand_limits(y = max(data$Demande_TWh) + 40)
   })
   
+  ##
+  ## 2.2. Data centres danns les FLAP-D ----
+  ##
   
-  
-
-  
-  
-  ## 1.2 Data centres danns les FLAP-D----
   # Extraire les coordonnées
   coords <- st_coordinates(data_DC_FLAPD)
   data_DC_FLAPD$longitude <- coords[, 1]
@@ -678,7 +738,7 @@ server <- function(input, output, session) {
   })
   
   
-  # Affichage de la carte avec points + légende + zoom
+  ### Carte de répartition des DC dans les FLAP-D ----
   output$map <- renderLeaflet({
     req(input$tabs == "flapd")
     df <- data_filtree()
@@ -797,15 +857,16 @@ server <- function(input, output, session) {
   outputOptions(output, "map", suspendWhenHidden = FALSE)  
   
   
+  ##
+  ## 2.3. Data centres en France ----
+  ##
   
-  ## 1.3 Data centres en France----
   
+  ##
+  ## 3.1. Énergie en France ----
+  ##
   
-  
-  
-  ## 2.1 Énergie en France----
-  
-  ### carte Conso et Prod d'énergie----
+  ### Carte Conso et Prod d'énergie ----
   output$map_conso <- renderLeaflet({
     req(input$tabs == "regions")
     data <- regions_data()
@@ -831,7 +892,7 @@ server <- function(input, output, session) {
   
   
   
-  ### PieChart1 - Production d'énergie par filière----
+  ### Graphique en camambert de Production d'énergie par filière----
   output$pie_chart <- renderPlotly({
     df_pie <- if (input$region_select == "France") {
       regions %>%
@@ -897,7 +958,7 @@ server <- function(input, output, session) {
   
   
   
-  ### AreaChart1 - Évolution de la production d'énergie en France----
+  ### Grphique d'évolution de la production d'énergie en France----
   output$area_chart <- renderPlotly({
     df_long <- data_prod %>%
       pivot_longer(cols = c(nucleaire, hydraulique, fossile, eolien, solaire, autre),
@@ -979,7 +1040,7 @@ server <- function(input, output, session) {
   })
   
   
-  ### Map6 - Production vs Consommation----
+  ### Carte de typologie des régions françaises en fonction du bilan énergétique----
   # Transformation en WGS84 (4326)
   regions_wgs84 <- st_transform(regions, 4326)
   
@@ -995,8 +1056,7 @@ server <- function(input, output, session) {
       bivar_class = paste0(x_q, "-", y_q)
     )
   
-  # Palette bivariée manuelle
-  ### Préparation des données bivariées ----
+  ### Préparation des données bivariées
   map6_data <- regions %>%
     st_transform(4326) %>%
     mutate(
@@ -1008,7 +1068,7 @@ server <- function(input, output, session) {
     ) %>%
     mutate(bivar_class = as.character(bivar_class))
   
-  ### Palette bivariée ----
+  ### Palette bivariée
   bivar_pal <- c(
     "1-1" = "#edebf4", "2-1" = "#9ccae1", "3-1" = "#4fadd0",
     "1-2" = "#e39bcc", "2-2" = "#9080bd", "3-2" = "#3d64ad",
@@ -1020,7 +1080,7 @@ server <- function(input, output, session) {
     domain = names(bivar_pal)
   )
   
-  ### Fonction popup HTML ----
+  ### Fonction popup HTML
   popup_html <- function(data) {
     paste0(
       "<b>Région :</b> ", data$NOM, "<br/>",
@@ -1029,8 +1089,7 @@ server <- function(input, output, session) {
     )
   }
   
-  
-  ### Rendu Leaflet ----
+  ### Rendu Leaflet
   output$map6 <- renderLeaflet({
     req(input$tabs == "regions")
     # Palette bivariée
@@ -1102,7 +1161,7 @@ server <- function(input, output, session) {
   
   
   
-  ### Radar Chart - Production vs Consommation ----
+  ### Graphique en radar de Production vs Consommation ----
   output$radar_chart <- renderPlotly({
     # Fonction de diagnostic et nettoyage des données
     tryCatch({
@@ -1286,11 +1345,11 @@ server <- function(input, output, session) {
     })
   })
   
+  ##
+  ## 3.2. Énergie en Auvergne-Rhone-Alpes----
+  ##
   
-  
-  
-  ## 2.2 Énergie en Auvergne-Rhone-Alpes----
-  
+  ### Carte de consommation des EPCI ----
   output$map_ara_totale <- renderLeaflet({
     req(input$tabs == "ara")
     data <- data_ara_data()
@@ -1315,7 +1374,7 @@ server <- function(input, output, session) {
                                                       style = list("color" = "gray20", "font-weight" = "bold", "font-size" = "13px")))
   })
   
-  
+  ### Carte de consommation des EPCI par habitant ----
   output$map_ara_hab <- renderLeaflet({
     req(input$tabs == "ara")
     data <- data_ara_data()
@@ -1366,6 +1425,7 @@ server <- function(input, output, session) {
            "Les deux" = prod_centrales)
   })
   
+  ### Carte des installations énergétiques ----
   output$map_centrales <- renderLeaflet({
     req(input$tabs == "ara")
     pal <- colorFactor(
@@ -1409,12 +1469,9 @@ server <- function(input, output, session) {
       )
   })
   
-  
-  
-  
-  ## 3.1. Simulation 1----
-  
-  ### Data----
+  ##
+  ## 4.1. Simulation 1----
+  ##
   
   # Données de base
   consommation_actuelle <- 442  # TWh
@@ -1454,7 +1511,7 @@ server <- function(input, output, session) {
   })
   
   
-  ### tendances----
+  ### Graphique de tendances ----
   # Dataframe de consommation électrique 2000-2024
   conso_hist <- data.frame(
     Annee = c(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1554,7 +1611,7 @@ server <- function(input, output, session) {
     
   })
   
-  ### Graphique principal----
+  ### Graphique principal ----
   output$energy_plot <- renderPlotly({
     conso_totale <- consommation_totale()
     nb_dc <- input$nb_dc
@@ -1713,7 +1770,7 @@ server <- function(input, output, session) {
       hovermode = 'closest',
       margin = list(t = 20, r = 40, b = 100, l = 60),
       
-      # 🔽 Ajout des annotations pour les lignes de référence
+      # Ajout des annotations pour les lignes de référence
       annotations = list(
         list(
           x = max(production_data$Annee),
@@ -1765,7 +1822,7 @@ server <- function(input, output, session) {
   })
   
   
-  ##### Value boxes----
+  ### Équivalent en unités de production ----
   
   # Constantes mises à jour selon ton retour
   energy_per_dc <- 8700  # GWh par DC
@@ -1882,9 +1939,9 @@ server <- function(input, output, session) {
   })
   
   
-  # 3.2. Simulation 2 ----
+  # 4.2. Simulation 2 ----
   
-  ### Data----
+  ### Data
   
   # Données consommation annuelle par habitant (en MWh/an)
   consommation_habitants <- data.frame(
