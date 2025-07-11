@@ -4,8 +4,6 @@ Ce tableau de bord Shiny développé avec `bs4Dash` permet d’explorer l’univ
 
 ## Structure de l’application
 
-## ONGLETS
-
 ### 0.0 Home Tab
 
 ### 1. Extraction et Production
