@@ -57,9 +57,8 @@ extraction <- extraction %>%
   st_make_valid() %>%  # Corrige les géométries invalides
   st_wrap_dateline(options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"), quiet = TRUE)
 
-data_DC_FLAPD <- st_read(here(
-  "dashboard",
-  "data", "data_DC_FLAPD", "DC_FLAP_D.shp"))
+data_DC_FLAPD <- readRDS(here("dashboard",
+                              "data", "data_DC_FLAPD.rds"))
 
 data_DC_FLAPD$ville_groupee <- case_when(
   data_DC_FLAPD$city %in% c("Paris", "Saint-Denis", "Courbevoie", "Ivry-sur-Seine", "Pantin", "Aubervilliers", "Montreuil", "Clichy", "Vitry-sur-Seine", "Roissy-en-France", "Nanterre", "Les Ulis", "Nozay", "Villepinte") ~ "Paris",

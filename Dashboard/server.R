@@ -1,5 +1,5 @@
 #
-# FONCTION ----
+# FUNCTIONS ----
 #
 
 create_energy_map <- function(data, var, couleur, titre) {
@@ -19,34 +19,39 @@ create_energy_map <- function(data, var, couleur, titre) {
 }
 
 create_sankey <- function(titre_racine, noms_usages, valeurs, couleurs) {
-  # Ajouter pourcentage dans les noms
+  # Ajouter les pourcentages dans les noms
   noms_et_pourcent <- paste0(noms_usages, " (", valeurs, "%)")
   
-  # Création des nœuds (racine + usages)
-  nodes <- data.frame(name = c(titre_racine, noms_et_pourcent))
+  # Création des nœuds : racine + usages
+  nodes <- data.frame(name = c(titre_racine, noms_et_pourcent), stringsAsFactors = FALSE)
   
-  # Création des liens : source = racine (0), target = 1:n
+  # Création des liens : la racine est toujours la source (0)
   links <- data.frame(
     source = rep(0, length(valeurs)),
     target = 1:length(valeurs),
     value = valeurs
   )
   
-  # Palette D3 (JavaScript)
+  # Construction de la palette D3 en JavaScript
   js_palette <- paste0(
     "d3.scaleOrdinal().range([",
     paste0('"', couleurs, '"', collapse = ", "),
     "])"
   )
   
-  # Affichage du Sankey
+  # Création du diagramme Sankey
   sankeyNetwork(
-    Links = links, Nodes = nodes,
-    Source = "source", Target = "target",
-    Value = "value", NodeID = "name",
-    fontSize = 15, nodeWidth = 30,
+    Links = links,
+    Nodes = nodes,
+    Source = "source",
+    Target = "target",
+    Value = "value",
+    NodeID = "name",
+    fontSize = 15,
+    nodeWidth = 30,
+    nodePadding = 12,     
     colourScale = js_palette,
-    sinksRight = FALSE
+    sinksRight = FALSE  
   )
 }
 
@@ -164,116 +169,6 @@ server <- function(input, output, session) {
   extraction_data <- reactive({
     req(extraction)
     extraction
-  })
-  
-  
-  # Réactif : flux commerciaux (inchangé)
-  flux_commerciaux <- reactive({
-    tribble(
-      ~source, ~target, ~value,
-      "Norway", "Netherlands", 111,
-      "Norway", "Sweden", 22,
-      "Norway", "Turkey", 19,
-      "Norway", "Germany", 14,
-      "Norway", "Italy", 10,
-      "Norway", "Spain", 10,
-      "Norway", "Poland", 8,
-      "Norway", "Denmark", 5,
-      "Norway", "Finland", 2,
-      "Norway", "Japan", 2,
-      "China", "Republic of Korea", 14,
-      "China", "Japan", 10,
-      "China", "Malaysia", 4,
-      "China", "Taiwan", 4,
-      "China", "India", 3,
-      "China", "Brazil", 3,
-      "China", "Thailand", 2,
-      "China", "Indonesia", 2,
-      "China", "Turkey", 2,
-      "South Africa", "Botswana", 7,
-      "South Africa", "Zimbabwe", 4,
-      "South Africa", "Namibia", 3,
-      "South Africa", "Gabon", 3,
-      "South Africa", "Australia", 4,
-      "South Africa", "Russia", 2,
-      "South Africa", "Netherlands", 2,
-      "South Africa", "India", 2,
-      "South Africa", "Brazil", 2,
-      "United States of America", "Mexico", 3,
-      "India", "United States of America", 5,
-      "India", "Turkey", 4,
-      "India", "Germany", 2,
-      "Bhutan", "India", 4,
-      "Russian Federation", "Saudi Arabia", 12,
-      "Russian Federation", "Japan", 11,
-      "Russian Federation", "Kazakhstan", 3,
-      "Russian Federation", "India", 1,
-      "Germany", "Mexico", 5,
-      "Germany", "Spain", 2,
-      "Germany", "Turkey", 3,
-      "Germany", "Belgium", 2,
-      "Germany", "Poland", 2,
-      "Germany", "Italy", 2,
-      "Germany", "Austria", 1,
-      "France", "Spain", 15,
-      "France", "Italy", 3,
-      "France", "Germany", 2,
-      "Canada", "United States of America", 63,
-      "Canada", "Australia", 13,
-      "Canada", "Mexico", 6,
-      "Canada", "Brazil", 3,
-      "Malaysia", "Thailand", 2,
-      "Spain", "Italy", 1,
-      "Kazakhstan", "Russian Federation", 2
-    )
-  })
-  
-  # Fonction utilitaire : retourne les 3 plus gros partenaires pour un pays donné
-  get_top3_partners <- function(pays, flux_df) {
-    flux_df %>%
-      filter(source == pays) %>%
-      arrange(desc(value)) %>%
-      slice_head(n = 3) %>%
-      pull(target) %>%
-      paste(collapse = ", ")
-  }
-  
-  # Réactif : table avec les top 3 partenaires pour chaque pays exportateur
-  top3_partners_all <- reactive({
-    flux <- flux_commerciaux()
-    pays_uniques <- unique(flux$source)
-    
-    tibble(
-      name = pays_uniques,
-      partenaires = sapply(pays_uniques, function(p) get_top3_partners(p, flux))
-    )
-  })
-  
-  # Réactif : flux commerciaux convertis en sf (basé sur coordonnées fixes)
-  flux_sf <- reactive({
-    flux <- flux_commerciaux()
-    
-    flux_coords <- flux %>%
-      left_join(pays_coords, by = c("source" = "name")) %>%
-      rename(lon_from = lon, lat_from = lat) %>%
-      left_join(pays_coords, by = c("target" = "name")) %>%
-      rename(lon_to = lon, lat_to = lat) %>%
-      filter(!is.na(lon_from), !is.na(lat_from), !is.na(lon_to), !is.na(lat_to))
-    
-    lignes <- st_sfc(
-      lapply(1:nrow(flux_coords), function(i) {
-        st_linestring(matrix(c(
-          flux_coords$lon_from[i], flux_coords$lat_from[i],
-          flux_coords$lon_to[i], flux_coords$lat_to[i]
-        ), ncol = 2, byrow = TRUE))
-      }),
-      crs = 4326
-    )
-    
-    st_sf(source = flux_coords$source,
-          target = flux_coords$target,
-          value = flux_coords$value,
-          geometry = lignes)
   })
   
   ##
@@ -454,12 +349,11 @@ server <- function(input, output, session) {
     
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c("Joaillerie", "Électronics", "Dentaire", "Autre industrie technologique", "Barres physiques", "Pièces officielles", "Médailles", "FNB"),
+      noms_usages = c("Joaillerie", "Électronics", "Dentaire", "Autre industrie technologique",
+                      "Barres physiques", "Pièces officielles", "Médailles", "FNB"),
       valeurs = pourcentages,
-      couleurs <- c(
-        "#FFD700", "#C0C0C0", "#FFB300", "#D4AF37",
-        "#B8860B", "#DAA520", "#E5C100", "#A67C00"
-      )
+      couleurs = c("#FFD700", "#C0C0C0", "#FFB300", "#D4AF37",
+                   "#B8860B", "#DAA520", "#E5C100", "#A67C00")
     )
   })
   
@@ -467,39 +361,32 @@ server <- function(input, output, session) {
     req(input$tabs == "extraction")
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c(
-        "Batteries", "Céramique et verre", "Graisses lubrifiantes",
-        "Production de polymères", "Flux de moulage", "Traitement de l'air", "Autres usages"
-      ),
+      noms_usages = c("Batteries", "Céramique et verre", "Graisses lubrifiantes",
+                      "Production de polymères", "Flux de moulage", "Traitement de l'air", "Autres usages"),
       valeurs = c(71, 14, 4, 2, 2, 1, 6),
       couleurs = c("#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69")
     )
   })
   
-  
   output$sankey_copper <- renderSankeyNetwork({
     req(input$tabs == "extraction")
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c(
-        "Construction", "Infrastructures électriques", "Énergies renouvelables",
-        "Véhicules électriques (EV)", "Moteurs thermiques (ICE)", "Transports",
-        "Machines et équipements", "Autres usages"
-      ),
+      noms_usages = c("Construction", "Infrastructures électriques", "Énergies renouvelables",
+                      "Véhicules électriques (EV)", "Moteurs thermiques (ICE)", "Transports",
+                      "Machines et équipements", "Autres usages"),
       valeurs = c(27, 26, 7, 3, 5, 4, 11, 20),
-      couleurs = c("#7f2704", "#a63603", "#d94801", "#f16913", "#fd8d3c", "#fdae6b", "#fdd0a2", "#fee6ce")
+      couleurs = c("#7f2704", "#a63603", "#d94801", "#f16913",
+                   "#fd8d3c", "#fdae6b", "#fdd0a2", "#fee6ce")
     )
   })
-  
   
   output$sankey_silicon <- renderSankeyNetwork({
     req(input$tabs == "extraction")
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c(
-        "Alliages d'aluminium", "Silicones et silanes", "Photovoltaïque",
-        "Semi-conducteurs", "Autres usages"
-      ),
+      noms_usages = c("Alliages d'aluminium", "Silicones et silanes", "Photovoltaïque",
+                      "Semi-conducteurs", "Autres usages"),
       valeurs = c(45, 35, 12, 3, 5),
       couleurs = c("#6baed6", "#9ecae1", "#c6dbef", "#fdd0a2", "#fdae6b")
     )
@@ -507,13 +394,10 @@ server <- function(input, output, session) {
   
   output$sankey_aluminium <- renderSankeyNetwork({
     req(input$tabs == "extraction")
-    
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c(
-        "Transport", "Construction", "Génie électrique",
-        "Machines et équipements", "Emballage", "Feuilles", "Autres", "Biens de consommation"
-      ),
+      noms_usages = c("Transport", "Construction", "Génie électrique",
+                      "Machines et équipements", "Emballage", "Feuilles", "Autres", "Biens de consommation"),
       valeurs = c(27, 25, 13, 9, 8, 8, 5, 5),
       couleurs = c("#d4d4d4", "#bababa", "#8c8c8c", "#a1c9f4",
                    "#80b1d3", "#fdb462", "#b3de69", "#fb8072")
@@ -522,13 +406,10 @@ server <- function(input, output, session) {
   
   output$sankey_nickel <- renderSankeyNetwork({
     req(input$tabs == "extraction")
-    
     create_sankey(
       titre_racine = "Demande totale",
-      noms_usages = c(
-        "Acier inoxydable", "Batteries", "Alliages spéciaux",
-        "Électrodéposition", "Acier spécial", "Autres"
-      ),
+      noms_usages = c("Acier inoxydable", "Batteries", "Alliages spéciaux",
+                      "Électrodéposition", "Acier spécial", "Autres"),
       valeurs = c(65, 15, 8, 6, 5, 1),
       couleurs = c("#4F81BD", "#1f78b4", "#b3cde3",
                    "#fb8072", "#b2df8a", "#cccccc")
@@ -546,32 +427,38 @@ server <- function(input, output, session) {
            
            "Or" = tagList(
              h4("Demande mondiale en or (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_gold", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_gold", height = "500px"))
            ),
            
            "Lithium" = tagList(
              h4("Demande mondiale en lithium (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_lithium", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_lithium", height = "500px"))
            ),
            
            "Cuivre" = tagList(
              h4("Demande mondiale en cuivre (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_copper", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_copper", height = "500px"))
            ),
            
            "Silicium" = tagList(
              h4("Demande mondiale en silicium (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_silicon", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_silicon", height = "500px"))
            ),
            
            "Aluminium" = tagList(
              h4("Demande mondiale en aluminium (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_aluminium", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_aluminium", height = "500px"))
            ),
            
            "Nickel" = tagList(
              h4("Demande mondiale en nickel (en %)", style = "color: #555;"),
-             sankeyNetworkOutput("sankey_nickel", height = "300px")
+             div(style = "width: 100%; max-width: 1000px; margin: auto;",
+                 sankeyNetworkOutput("sankey_nickel", height = "500px"))
            ),
            
            "Zinc" = h4("Pas de données disponibles pour le zinc.", style = "color: #a94442;"),
