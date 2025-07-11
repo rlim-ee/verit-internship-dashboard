@@ -119,7 +119,7 @@ Les données sont stockées localement sous forme `.rds` :
 ## Contacts
 
 - **Auteurs** : Robert Lim et Zoé Cargnelli 
-- **Encadrants** : Aurélie Zara et Mario Cortes-Cornax
+- **Encadrants** : Aurélie Zara, Mario Cortes-Cornax et Paule-Annick Davoine
 - **Contacts** : robert.lim@etu.univ-grenoble-alpes.fr / zoe.cargnelli@etu.univ-grenoble-alpes.fr
 
 **Stage M1 Géomatique et Analyse Spatiale** – Projet VerIT, Université Grenoble Alpes, Grenoble INP, CMQ IED
