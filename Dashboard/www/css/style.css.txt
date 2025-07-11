@@ -1,84 +1,130 @@
-/* Import de la police Poppins */
-body, h1, h2, h3, h4, h5, h6, .nav-link, .brand-text, .btn, .card {
-  font-family: 'Poppins', sans-serif !important;
-}
 
-/* Couleur de fond globale (gris très clair) */
-body {
-  background-color: #f8f9fa;
-}
+    body, h1, h2, h3, h4, h5, h6, .nav-link, .brand-text {
+    font-family: 'Poppins', sans-serif !important;
+  }
 
-/* Cartes modernes */
-.card {
-  border-radius: 16px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: none !important;
-}
+  .main-header .navbar .navbar-brand .brand-text {
+    font-weight: bold !important;
+    font-size: 22px !important;
+    color: #f5f6f7 !important;
+  }
 
-/* Boutons personnalisés */
-.btn {
-  border-radius: 8px !important;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-}
+  .main-sidebar,
+  .sidebar-dark-primary {
+    background-color: #31708f !important;
+    color: white !important;
+  }
 
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
+  .main-sidebar .nav-link {
+    color: white !important;
+  }
 
-/* Boutons actifs dans la sidebar */
-.nav-link.active {
-  background-color: #31708f !important;
-  color: #fff !important;
-}
+  .main-sidebar .nav-link.active,
+  .main-sidebar .nav-link:hover {
+    background-color: #265a6a !important;
+    color: white !important;
+  }
 
-/* ActionLink boutons de navigation */
-a {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #31708f;
-  text-decoration: none;
-}
+  .main-sidebar .nav-link .fa {
+    color: white !important;
+  }
 
-a:hover {
-  color: #23527c;
-  text-decoration: underline;
-}
+  .content-wrapper,
+  .main-footer,
+  .main-header {
+    background-color: white !important;
+  }
 
-/* Titres et textes */
-h3 {
-  color: #0B162C;
-  font-weight: bold;
-}
+  .card-header {
+    background-color: #0B162C !important;
+    color: #5FC2BA !important;
+  }
 
-.energy-subtitle-text {
-  font-size: 0.95rem;
-  color: #666;
-}
+  .card-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: white !important;
+  }
 
-/* Footers de cartes */
-.card-footer {
-  background-color: transparent !important;
-  color: #555;
-  font-size: 0.85em;
-  border-top: none;
-}
+  .section-header {
+    background-color: #31708f !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 1.4rem !important;
+    padding: 12px 20px !important;
+    margin: 30px 0 20px 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    border-left: 5px solid #0B162C !important;
+    letter-spacing: 0.5px !important;
+  }
 
-/* SliderInput (si besoin) */
-.irs--shiny .irs-bar {
-  background-color: #31708f;
-}
+  .modern-energy-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 5px solid;
+    padding: 20px;
+    margin-bottom: 20px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-.irs--shiny .irs-from,
-.irs--shiny .irs-to,
-.irs--shiny .irs-single {
-  background-color: #31708f;
-}
+  .modern-energy-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
 
-/* Alignement du texte */
-.card-body p {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #444;
-}
+  .energy-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .energy-icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+  }
+
+  .energy-value-large {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .energy-subtitle-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .energy-capacity-info {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .section-title {
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3b82f6;
+    display: inline-block;
+  }
