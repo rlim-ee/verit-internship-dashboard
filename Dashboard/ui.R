@@ -24,7 +24,7 @@ ui <- bs4DashPage(
       
       bs4SidebarMenuItem("Extr & Prod", icon = icon("spinner"),
                          bs4SidebarMenuSubItem("Métaux", tabName = "extraction"),
-                         bs4SidebarMenuSubItem("Semi-conducteur", tabName = "semi_conductors")
+                         bs4SidebarMenuSubItem("Semi-conducteurs", tabName = "semi_conductors")
       ),
       
       bs4SidebarMenuItem("DC & Europe", icon = icon("earth-europe"),
@@ -971,7 +971,36 @@ ui <- bs4DashPage(
     ####
     #### 2.3. Data centres en France ----
     ####
-    
+    bs4TabItem(
+      tabName = "dc_france",
+      
+      # Bouton retour
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "margin-bottom: 20px;",
+            actionButton("retour_accueil_dc_france", "Retour à l'accueil", 
+                         icon = icon("arrow-left"),
+                         style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+          )
+        )
+      ),
+      
+      # Titre
+      fluidRow(
+        column(
+          width = 12,
+          div(
+            style = "background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;",
+            h2(icon("earth-europe"), "Répartition des data centers en France", 
+               style = "color: #31708f; font-weight: bold; margin: 0;")
+          )
+        )
+      ),
+      
+      h3("Contenu à venir")
+    ),
     
     
     ###

@@ -34,7 +34,7 @@ lapply(required_packages, library, character.only = TRUE)
 
 
 dc_europe <- readRDS(here("dashboard", 
-  "data", "dc_europe.rds"))
+                          "data", "dc_europe.rds"))
 europe_map <- readRDS(here("dashboard", 
                            "data", "europe_map.rds"))
 regions <- readRDS(here("dashboard", 
