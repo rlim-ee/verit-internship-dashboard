@@ -753,12 +753,27 @@ ui <- bs4DashPage(
         # Bouton retour
         fluidRow(
           column(
-            width = 12,
+            width = 6,
             div(
               style = "margin-bottom: 20px;",
               actionButton("retour_accueil_dc_europe", "Retour à l'accueil", 
                            icon = icon("arrow-left"),
                            style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+            )
+          ),
+          
+          # Guide d'utilisation
+          column(
+            width = 6,
+            div(
+              style = "text-align: right; margin-bottom: 20px;",
+              tags$a(
+                href = "user_guide/user_guide_dc_europe.pdf", 
+                target = "_blank", 
+                class = "btn btn-success",
+                style = "padding: 10px 20px; border-radius: 5px;",
+                icon("file-pdf"), " Guide d'utilisation"
+              )
             )
           )
         ),
@@ -1016,12 +1031,27 @@ ui <- bs4DashPage(
       # Bouton retour
       fluidRow(
         column(
-          width = 12,
+          width = 6,
           div(
             style = "margin-bottom: 20px;",
             actionButton("retour_accueil_regions", "Retour à l'accueil", 
                          icon = icon("arrow-left"),
                          style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
+          )
+        ),
+        
+        # Guide d'utilisation
+        column(
+          width = 6,
+          div(
+            style = "text-align: right; margin-bottom: 20px;",
+            tags$a(
+              href = "user_guide/user_guide_energy_fr.pdf", 
+              target = "_blank", 
+              class = "btn btn-success",
+              style = "padding: 10px 20px; border-radius: 5px;",
+              icon("file-pdf"), " Guide d'utilisation"
+            )
           )
         )
       ),
