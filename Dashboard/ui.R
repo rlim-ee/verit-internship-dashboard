@@ -1724,7 +1724,7 @@ ui <- bs4DashPage(
             collapsible = TRUE,
             collapsed = TRUE,
             width = 12,
-            p("Ce graphique permet de représenter et de comparer le nombre d'habitants équivalents pour chaque palier de consommation du data center d'Eybens entre 2025 et 2035. Et ce, en prenant des exemples de profils de consommation par personne à travers le monde et en France."),
+            p("Ce graphique permet de représenter et de comparer le nombre d'habitants équivalents pour chaque palier de consommation du data center d'Eybens entre 2025 et 2035. Et ce, en prenant des exemples de profils de consommation du secteur résidentiel uniquement et ceux par personne à travers le monde et en France."),
             p("Les barres représentent le nombre d'habitants équivalents selon la consommation moyenne."),
             p("Cochez les profils pour adapter la simulation."),
             tags$hr(),
@@ -1751,10 +1751,10 @@ ui <- bs4DashPage(
         )
       ),
       
-      ##### 4.2.2. Graphique 1 - Comparaison avec consommation par pays ----
+      ##### 4.2.2. Graphique 1 - Comparaison avec consommation résidentielle par pays ----
       fluidRow(
         bs4Card(
-          title = "Simulation : Comparaison avec la consommation par habitant à travers le monde",
+          title = "Simulation : Comparaison avec la consommation du secteur résidentiel par habitant à travers le monde",
           status = "primary",
           solidHeader = TRUE,
           width = 12,
@@ -1771,12 +1771,20 @@ ui <- bs4DashPage(
             )
           ),
           p(),
-          p(strong("💡 Aide d'interprétation pour l'échelle mondiale :"),"Pour un data center d’une puissance de 1 GW, cela correspond à la consommation énergétique annuelle de 3 275 991 personnes, basée sur la moyenne mondiale de 2,674 MWh par personne et par an."),
-          footer = "Sources : Ministère de la Transistion Écologique et de la Cohésion des Territoires : Chiffres clés de l'énergie, 2024"
+          p(strong("💡 Aide d'interprétation pour l'échelle mondiale :"),"Pour un data center d’une puissance de 1 GW, cela correspond à la consommation énergétique résidentielle annuelle de 3 275 991 personnes, basée sur la moyenne mondiale de 2,674 MWh par personne et par an."),
+          footer = "Sources des données: Ministère de la Transistion Écologique et de la Cohésion des Territoires : Chiffres clés de l'énergie, 2024"
         )
       ),
       
       ##### 4.2.3. Encarts info pour les habitants équivalents pour le Mali, le Qatar et la France ----
+      tags$div(
+        h4("💡 Focus sur 3 pays : équivalents en population pour un data center de 1 GW", 
+           style = "margin-top: 25px; color: #1f2937;"),
+        tags$p("Ces encarts présentent le nombre d’habitants dont la consommation annuelle équivaut à celle d’un data center de 1 GW, 
+         pour trois pays représentatifs : un pays à très forte consommation (Qatar), un pays à très faible consommation (Mali), 
+         et la France comme cas d’étude central. Le pourcentage affiché indique la part de la population nationale que cela représenterait.",
+               style = "font-size: 0.95em; color: #4b5563; margin-bottom: 15px;")
+      ),
       fluidRow(
         column(4,
                div(class = "modern-energy-card", 
@@ -1784,11 +1792,14 @@ ui <- bs4DashPage(
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #22c55e, #15803d);",
-                           icon("leaf")
+                           icon("map")
                        ),
                        div(style = "text-align: right;",
                            h3(textOutput("qatar_1gw"), class = "energy-value-large", style = "color: #22c55e;"),
-                           p(textOutput("qatar_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                           p(textOutput("qatar_pop"), class = "energy-subtitle-text", 
+                             style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
+                           p(textOutput("qatar_pct"), class = "energy-subtitle-text", 
+                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(
@@ -1802,11 +1813,14 @@ ui <- bs4DashPage(
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #eab308, #ca8a04);",
-                           icon("leaf")
+                           icon("location-arrow")
                        ),
                        div(style = "text-align: right;",
                            h3(textOutput("france_1gw"), class = "energy-value-large", style = "color: #eab308;"),
-                           p(textOutput("france_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                           p(textOutput("france_pop"), class = "energy-subtitle-text", 
+                             style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
+                           p(textOutput("france_pct"), class = "energy-subtitle-text", 
+                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(
@@ -1820,11 +1834,14 @@ ui <- bs4DashPage(
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #f43f5e, #be123c);",
-                           icon("leaf")
+                           icon("exclamation-circle")
                        ),
                        div(style = "text-align: right;",
                            h3(textOutput("mali_1gw"), class = "energy-value-large", style =  "color: #f43f5e;"),
-                           p(textOutput("mali_pop"), class = "energy-subtitle-text", style = "margin-top: -10px; font-size: 0.9em; color: #4b5563;")
+                           p(textOutput("mali_pop"), class = "energy-subtitle-text", 
+                             style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
+                           p(textOutput("mali_pct"), class = "energy-subtitle-text", 
+                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(

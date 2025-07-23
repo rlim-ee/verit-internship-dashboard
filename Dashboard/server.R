@@ -1888,6 +1888,27 @@ server <- function(input, output, session) {
     "Population totale : 28 243 609"
   })
   
+  
+  # --- Pourcentages d'équivalence France, Qatar, Mali ----
+  
+  output$france_pct <- renderText({
+    habitants <- dc_1gw_conso / consommation_habitants %>% filter(grepl("France", Pays)) %>% pull(Conso_MWh)
+    pct <- round(habitants / 68290000 * 100, 2)
+    paste0("Soit ", pct, " % de la population totale du pays")
+  })
+  
+  output$qatar_pct <- renderText({
+    habitants <- dc_1gw_conso / consommation_habitants %>% filter(grepl("Qatar", Pays)) %>% pull(Conso_MWh)
+    pct <- round(habitants / 2660000 * 100, 2)
+    paste0("Soit ", pct, " % de la population totale du pays")
+  })
+  
+  output$mali_pct <- renderText({
+    habitants <- dc_1gw_conso / consommation_habitants %>% filter(grepl("Mali", Pays)) %>% pull(Conso_MWh)
+    pct <- round(habitants / 28243609 * 100, 2)
+    paste0("Soit ", pct, " % de la population totale du pays")
+  })
+  
   # UI : Checkboxes sans sidebarPanel
   output$checkbox_group_conso <- renderUI({
     checkboxGroupInput(
