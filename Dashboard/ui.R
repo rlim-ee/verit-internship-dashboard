@@ -1699,22 +1699,22 @@ ui <- bs4DashPage(
                              icon = icon("arrow-left"),
                              style = "background-color: #31708f; color: white; border: none; padding: 10px 20px; border-radius: 5px;")
               )
-            )
+            ),
             
             # Guide d'utilisation
-            #column(
-              #width = 6,
-              #div(
-                #style = "text-align: right; margin-bottom: 20px;",
-                #tags$a(
-                  #href = "user_guide/user_guide_sim2.pdf", 
-                  #target = "_blank", 
-                  #class = "btn btn-success",
-                  #style = "padding: 10px 20px; border-radius: 5px;",
-                  #icon("file-pdf"), " Guide d'utilisation"
-                #)
-              #)
-            #)
+            column(
+              width = 6,
+              div(
+                style = "text-align: right; margin-bottom: 20px;",
+                tags$a(
+                  href = "user_guide/user_guide_sim2.pdf", 
+                  target = "_blank", 
+                  class = "btn btn-success",
+                  style = "padding: 10px 20px; border-radius: 5px;",
+                  icon("file-pdf"), " Guide d'utilisation"
+                )
+              )
+            )
           ),
           
           ##### 4.2.1. Boite d'explication ----
@@ -1788,7 +1788,7 @@ ui <- bs4DashPage(
       fluidRow(
         column(4,
                div(class = "modern-energy-card", 
-                   style = "border-left-color: #22c55e;",
+                   style = "border-left-color: #22c55e; min-height: 220px; height: auto;",
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #22c55e, #15803d);",
@@ -1799,7 +1799,7 @@ ui <- bs4DashPage(
                            p(textOutput("qatar_pop"), class = "energy-subtitle-text", 
                              style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
                            p(textOutput("qatar_pct"), class = "energy-subtitle-text", 
-                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
+                             style = "margin-top: 5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(
@@ -1809,7 +1809,7 @@ ui <- bs4DashPage(
         ),
         column(4,
                div(class = "modern-energy-card", 
-                   style = "border-left-color: #eab308;",
+                   style = "border-left-color: #eab308; min-height: 220px; height: auto;",
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #eab308, #ca8a04);",
@@ -1820,7 +1820,7 @@ ui <- bs4DashPage(
                            p(textOutput("france_pop"), class = "energy-subtitle-text", 
                              style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
                            p(textOutput("france_pct"), class = "energy-subtitle-text", 
-                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
+                             style = "margin-top: 5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(
@@ -1830,18 +1830,18 @@ ui <- bs4DashPage(
         ),
         column(4,
                div(class = "modern-energy-card", 
-                   style = "border-left-color: #f43f5e;",
+                   style = "border-left-color: #f43f5e; min-height: 220px; height: auto;",
                    div(class = "energy-card-header",
                        div(class = "energy-icon-circle", 
                            style = "background: linear-gradient(135deg, #f43f5e, #be123c);",
                            icon("exclamation-circle")
                        ),
                        div(style = "text-align: right;",
-                           h3(textOutput("mali_1gw"), class = "energy-value-large", style =  "color: #f43f5e;"),
+                           h3(textOutput("mali_1gw"), class = "energy-value-large", style = "color: #f43f5e;"),
                            p(textOutput("mali_pop"), class = "energy-subtitle-text", 
                              style = "margin-top: 10px; font-size: 0.9em; color: #4b5563;"),
                            p(textOutput("mali_pct"), class = "energy-subtitle-text", 
-                             style = "margin-top: -5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
+                             style = "margin-top: 5px; font-size: 0.85em; color: #4b5563; font-style: italic;")
                        )
                    ),
                    div(
